@@ -1,6 +1,21 @@
 import os
 import json
 import datetime
+from enum import Enum
+
+class MyEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, type):
+            return {'$class': o.__module__ + "." + o.__name__}
+        elif isinstance(o, Enum):
+            return {
+                '$enum': o.__module__ + "." + o.__class__.__name__ + '.' + o.name
+            }
+        elif callable(o):
+            return {
+                '$function': o.__module__ + "." + o.__name__
+            }
+        return json.JSONEncoder.default(self, o)
 
 
 def create_env_folder(env_name, expID, algo):
