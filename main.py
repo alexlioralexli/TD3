@@ -70,6 +70,7 @@ if __name__ == "__main__":
 
     # other
     parser.add_argument("--expID", default=9999, type=int)
+    parser.add_argument("--test", '-t', action='store_true')
     args = parser.parse_args()
 
     file_name = f"{args.policy}_{args.env}_{args.seed}"
@@ -140,7 +141,7 @@ if __name__ == "__main__":
         kwargs['network_kwargs'] = full_network_kwargs
 
     # set up logging
-    log_dir = create_env_folder(args.env, args.expID, 'td3', args.network_class)
+    log_dir = create_env_folder(args.env, args.expID, 'td3', args.network_class, test=args.test)
     save_kwargs(kwargs, log_dir)
     tabular_log_path = osp.join(log_dir, 'progress.csv')
     text_log_path = osp.join(log_dir, 'debug.log')

@@ -18,10 +18,13 @@ class MyEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, o)
 
 
-def create_env_folder(env_name, expID, algo, network_class):
+def create_env_folder(env_name, expID, algo, network_class, test=False):
     # might have diambiguation problems, but very unlikely to have match to the millisecond
     wrapper_folder = f'{env_name}-{algo}-{datetime.datetime.now().strftime("%m-%d-%Y")}'
     inner_folder = f'{env_name}-{algo}-{network_class}-exp{expID}-{datetime.datetime.now().strftime("%m-%d-%Y_%H-%M-%S-%f")}'
+    if test:
+        wrapper_folder += '-test'
+        inner_folder += '-test'
     folder_path = os.path.join('logs', wrapper_folder, inner_folder)
     os.makedirs(folder_path, exist_ok=True)
     return folder_path
