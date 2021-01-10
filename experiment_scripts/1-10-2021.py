@@ -17,7 +17,7 @@ for type in ['--train_B --expID 10',
              '--concatenate_fourier --train_B --expID 11']:
     for n_hidden in [1, 2]:
         for sigma in [0.0003, 0.001, 0.003, 0.006]:
-            exp_strings.append(f'--network_class FourierMLP {type} --n_hidden {n_hidden}--sigma {sigma} --fourier_dim 1024')
+            exp_strings.append(f'--network_class FourierMLP {type} --n_hidden {n_hidden} --sigma {sigma} --fourier_dim 1024')
 
 for env in ['HalfCheetah-v3']:
     for string in exp_strings:
