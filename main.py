@@ -140,6 +140,7 @@ if __name__ == "__main__":
     if args.network_class == 'MLP':
         kwargs['network_kwargs'] = full_network_kwargs
     kwargs['expID'] = args.expID
+    kwargs['seed'] = args.seed
 
     # set up logging
     log_dir = create_env_folder(args.env, args.expID, 'td3', args.network_class, test=args.test)
