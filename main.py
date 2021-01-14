@@ -11,6 +11,7 @@ from models.mlp import MLP, FourierMLP
 from logging_utils import save_kwargs, create_env_folder
 import os.path as osp
 from rlkit_logging import logger
+from utils import make_env
 
 NETWORK_CLASSES = dict(
     MLP=MLP,
@@ -21,7 +22,7 @@ NETWORK_CLASSES = dict(
 # Runs policy for X episodes and returns average reward
 # A fixed seed is used for the eval environment
 def eval_policy(policy, env_name, seed, eval_episodes=10):
-    eval_env = gym.make(env_name)
+    eval_env = make_env(env_name)
     eval_env.seed(seed + 100)
 
     avg_reward = 0.
@@ -63,6 +64,7 @@ if __name__ == "__main__":
     parser.add_argument("--network_class", default="MLP", choices=['MLP', 'FourierMLP'])
     parser.add_argument("--n_hidden", default=1, type=int)
     parser.add_argument("--hidden_dim", default=256, type=int)
+    parser.add_argument("--first_dim", default=0, type=int)
     parser.add_argument("--fourier_dim", default=256, type=int)
     parser.add_argument("--sigma", default=1.0, type=float)
     parser.add_argument("--concatenate_fourier", action='store_true')
@@ -84,7 +86,7 @@ if __name__ == "__main__":
     if args.save_model and not os.path.exists("./models"):
         os.makedirs("./models")
 
-    env = gym.make(args.env)
+    env = make_env(args.env)
 
     # Set seeds
     env.seed(args.seed)
@@ -106,7 +108,8 @@ if __name__ == "__main__":
     # custom network kwargs
     kwargs['network_class'] = NETWORK_CLASSES[args.network_class]
     basic_network_kwargs = dict(n_hidden=args.n_hidden,
-                                hidden_dim=args.hidden_dim)
+                                hidden_dim=args.hidden_dim,
+                                first_dim=args.first_dim)
     full_network_kwargs = dict(n_hidden=args.n_hidden,
                                hidden_dim=args.hidden_dim,
                                fourier_dim=args.fourier_dim,
@@ -141,6 +144,7 @@ if __name__ == "__main__":
         kwargs['network_kwargs'] = full_network_kwargs
     kwargs['expID'] = args.expID
     kwargs['seed'] = args.seed
+    kwargs['first_dim'] = max(args.hidden_dim, args.first_dim)
 
     # set up logging
     log_dir = create_env_folder(args.env, args.expID, 'td3', args.network_class, test=args.test)

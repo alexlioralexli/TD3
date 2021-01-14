@@ -5,14 +5,16 @@ import numpy as np
 
 class MLP(nn.Module):
 
-    def __init__(self, input_size, output_size, n_hidden=1, hidden_dim=256, add_tanh=False):
+    def __init__(self, input_size, output_size, n_hidden=1, hidden_dim=256, first_dim=0, add_tanh=False):
         super().__init__()
 
-        layers = [nn.Linear(input_size, hidden_dim), nn.ReLU()]
+        first_dim = max(hidden_dim, first_dim)
+        layers = [nn.Linear(input_size, first_dim), nn.ReLU()]
         for _ in range(n_hidden - 1):
-            layers.append(nn.Linear(hidden_dim, hidden_dim))
+            layers.append(nn.Linear(first_dim, hidden_dim))
+            first_dim = hidden_dim
             layers.append(nn.ReLU())
-        layers.append(nn.Linear(hidden_dim, output_size))
+        layers.append(nn.Linear(first_dim, output_size))
         if add_tanh:
             layers.append(nn.Tanh())
 
