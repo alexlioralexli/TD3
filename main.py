@@ -57,7 +57,6 @@ if __name__ == "__main__":
     parser.add_argument("--policy_noise", default=0.2)  # Noise added to target policy during critic update
     parser.add_argument("--noise_clip", default=0.5)  # Range to clip target policy noise
     parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
-    parser.add_argument("--save_model", action="store_true")  # Save model and optimizer parameters
     parser.add_argument("--load_model", default="")  # Model load file name, "" doesn't load, "default" uses file_name
 
     # network kwargs
@@ -82,9 +81,6 @@ if __name__ == "__main__":
 
     if not os.path.exists("./results"):
         os.makedirs("./results")
-
-    if args.save_model and not os.path.exists("./models"):
-        os.makedirs("./models")
 
     env = make_env(args.env)
 
@@ -156,6 +152,7 @@ if __name__ == "__main__":
     logger.add_tabular_output(tabular_log_path)
     exp_name = f'{args.env}-td3-exp{args.expID}'
     logger.push_prefix("[%s] " % exp_name)
+    policy.save(osp.join(log_dir, f'itr0'))
 
     replay_buffer = utils.ReplayBuffer(state_dim, action_dim)
 
@@ -212,5 +209,6 @@ if __name__ == "__main__":
             logger.record_tabular('Eval returns', evaluations[-1])
             logger.dump_tabular(with_prefix=False, with_timestamp=False)
             np.save(osp.join(log_dir, 'evaluations.npy'), evaluations)
-            if args.save_model:
-                policy.save(f"./models/{file_name}")
+            if (t+1) % 50 == 0:
+                policy.save(osp.join(log_dir, f'itr{t+1}'))
+    policy.save(osp.join(log_dir, f'final'))  # might be unnecessary if everything divides out properly
