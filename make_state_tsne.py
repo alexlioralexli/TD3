@@ -90,7 +90,7 @@ if __name__ == '__main__':
     else:
         kwargs['network_kwargs'] = dict(n_hidden=variant['network_kwargs']['n_hidden'],
                                         hidden_dim=variant['network_kwargs']['hidden_dim'],
-                                        first_dim=variant['network_kwargs']['first_dim'])
+                                        first_dim=variant['first_dim'])
 
     # Initialize policy
     if args.policy == "TD3":
