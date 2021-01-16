@@ -37,7 +37,6 @@ def get_rollout_states(policy, env_name, noise=0, seed=0, timesteps=10000):
             state, reward, done, _ = eval_env.step(action)
             states.append(state)
             t += 1
-            print(t)
     return np.array(states)[:timesteps]
 
 
@@ -58,7 +57,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy", default="TD3")  # Policy name (TD3, DDPG or OurDDPG)
     parser.add_argument("--env", default="HalfCheetah-v2")  # OpenAI gym environment name
-    parser.add_argument("--expl_noise", default=0.1)  # Std of Gaussian exploration noise
+    parser.add_argument("--expl_noise", type=float, default=0.1)  # Std of Gaussian exploration noise
     parser.add_argument("--n_timesteps", '-n', default=1e5, type=int)
     parser.add_argument("--load_model", default="")
     args = parser.parse_args()
