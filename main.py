@@ -141,6 +141,7 @@ if __name__ == "__main__":
     kwargs['expID'] = args.expID
     kwargs['seed'] = args.seed
     kwargs['first_dim'] = max(args.hidden_dim, args.first_dim)
+    kwargs['env'] = args.env
 
     # set up logging
     log_dir = create_env_folder(args.env, args.expID, 'td3', args.network_class, test=args.test)
@@ -209,6 +210,6 @@ if __name__ == "__main__":
             logger.record_tabular('Eval returns', evaluations[-1])
             logger.dump_tabular(with_prefix=False, with_timestamp=False)
             np.save(osp.join(log_dir, 'evaluations.npy'), evaluations)
-            if (t+1) % 50 == 0:
+            if (t+1) % 250000 == 0:
                 policy.save(osp.join(log_dir, f'itr{t+1}'))
     policy.save(osp.join(log_dir, f'final'))  # might be unnecessary if everything divides out properly
