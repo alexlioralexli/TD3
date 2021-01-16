@@ -48,7 +48,7 @@ def save_embedding(states, fpath, embedding='pca'):
     else:
         raise NotImplementedError
     plt.figure(dpi=200)
-    plt.scatter(x_embedded[:, 0], x_embedded[:, 1], s=1.5)
+    plt.scatter(x_embedded[:, 0], x_embedded[:, 1], s=1)
     plt.title(f'{embedding} embedding of visited states')
     plt.savefig(fpath)
 
