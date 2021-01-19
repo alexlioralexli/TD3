@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+CUDA_VISIBLE_DEVICES=0 python main.py --env Ant-v3 --network_class Siren --omega 30 --n_hidden 1 --hidden_dim 256 --expID 18 --seed 10 &
+CUDA_VISIBLE_DEVICES=1 python main.py --env Ant-v3 --network_class Siren --omega 30 --n_hidden 1 --hidden_dim 256 --expID 18 --seed 20 &
+CUDA_VISIBLE_DEVICES=2 python main.py --env Ant-v3 --network_class Siren --omega 30 --n_hidden 1 --hidden_dim 256 --expID 18 --seed 30 &
+CUDA_VISIBLE_DEVICES=3 python main.py --env Ant-v3 --network_class Siren --omega 30 --n_hidden 1 --hidden_dim 1024 --expID 18 --seed 10 &
+CUDA_VISIBLE_DEVICES=4 python main.py --env Ant-v3 --network_class Siren --omega 30 --n_hidden 1 --hidden_dim 1024 --expID 18 --seed 20 &
+CUDA_VISIBLE_DEVICES=0 python main.py --env Ant-v3 --network_class Siren --omega 30 --n_hidden 1 --hidden_dim 1024 --expID 18 --seed 30 &
+CUDA_VISIBLE_DEVICES=1 python main.py --env Ant-v3 --network_class Siren --omega 30 --n_hidden 2 --hidden_dim 256 --expID 18 --seed 10 &
+CUDA_VISIBLE_DEVICES=2 python main.py --env Ant-v3 --network_class Siren --omega 30 --n_hidden 2 --hidden_dim 256 --expID 18 --seed 20 &
+CUDA_VISIBLE_DEVICES=3 python main.py --env Ant-v3 --network_class Siren --omega 30 --n_hidden 2 --hidden_dim 256 --expID 18 --seed 30 &
+CUDA_VISIBLE_DEVICES=4 python main.py --env Ant-v3 --network_class Siren --omega 30 --n_hidden 2 --hidden_dim 1024 --expID 18 --seed 10 &
+CUDA_VISIBLE_DEVICES=0 python main.py --env Ant-v3 --network_class Siren --omega 30 --n_hidden 2 --hidden_dim 1024 --expID 18 --seed 20 &
+CUDA_VISIBLE_DEVICES=1 python main.py --env Ant-v3 --network_class Siren --omega 30 --n_hidden 2 --hidden_dim 1024 --expID 18 --seed 30 &
+CUDA_VISIBLE_DEVICES=2 python main.py --env Ant-v3 --network_class Siren --omega 30 --n_hidden 3 --hidden_dim 256 --expID 18 --seed 10 &
+CUDA_VISIBLE_DEVICES=3 python main.py --env Ant-v3 --network_class Siren --omega 30 --n_hidden 3 --hidden_dim 256 --expID 18 --seed 20 &
+CUDA_VISIBLE_DEVICES=4 python main.py --env Ant-v3 --network_class Siren --omega 30 --n_hidden 3 --hidden_dim 256 --expID 18 --seed 30 &
+CUDA_VISIBLE_DEVICES=0 python main.py --env Ant-v3 --network_class Siren --omega 30 --n_hidden 3 --hidden_dim 1024 --expID 18 --seed 10 &
+CUDA_VISIBLE_DEVICES=1 python main.py --env Ant-v3 --network_class Siren --omega 30 --n_hidden 3 --hidden_dim 1024 --expID 18 --seed 20 &
+CUDA_VISIBLE_DEVICES=2 python main.py --env Ant-v3 --network_class Siren --omega 30 --n_hidden 3 --hidden_dim 1024 --expID 18 --seed 30 &
+CUDA_VISIBLE_DEVICES=3 python main.py --env Ant-v3 --network_class D2RL --n_hidden 2 --expID 19 --seed 10 &
+CUDA_VISIBLE_DEVICES=4 python main.py --env Ant-v3 --network_class D2RL --n_hidden 2 --expID 19 --seed 20 &
+CUDA_VISIBLE_DEVICES=0 python main.py --env Ant-v3 --network_class D2RL --n_hidden 2 --expID 19 --seed 30 &
+CUDA_VISIBLE_DEVICES=1 python main.py --env Ant-v3 --network_class D2RL --n_hidden 4 --expID 19 --seed 10 &
+CUDA_VISIBLE_DEVICES=2 python main.py --env Ant-v3 --network_class D2RL --n_hidden 4 --expID 19 --seed 20 &
+CUDA_VISIBLE_DEVICES=3 python main.py --env Ant-v3 --network_class D2RL --n_hidden 4 --expID 19 --seed 30 &

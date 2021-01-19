@@ -7,7 +7,7 @@ import utils
 import TD3
 import OurDDPG
 import DDPG
-from models.mlp import MLP, FourierMLP
+from models.mlp import MLP, FourierMLP, Siren, D2RL
 from logging_utils import save_kwargs, create_env_folder
 import os.path as osp
 from rlkit_logging import logger
@@ -15,7 +15,9 @@ from utils import make_env
 
 NETWORK_CLASSES = dict(
     MLP=MLP,
-    FourierMLP=FourierMLP
+    FourierMLP=FourierMLP,
+    Siren=Siren,
+    D2RL=D2RL
 )
 
 
@@ -42,7 +44,6 @@ def eval_policy(policy, env_name, seed, eval_episodes=10):
 
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy", default="TD3")  # Policy name (TD3, DDPG or OurDDPG)
     parser.add_argument("--env", default="HalfCheetah-v2")  # OpenAI gym environment name
@@ -60,12 +61,13 @@ if __name__ == "__main__":
     parser.add_argument("--load_model", default="")  # Model load file name, "" doesn't load, "default" uses file_name
 
     # network kwargs
-    parser.add_argument("--network_class", default="MLP", choices=['MLP', 'FourierMLP'])
+    parser.add_argument("--network_class", default="MLP", choices=['MLP', 'FourierMLP', 'Siren', 'D2RL'])
     parser.add_argument("--n_hidden", default=1, type=int)
     parser.add_argument("--hidden_dim", default=256, type=int)
     parser.add_argument("--first_dim", default=0, type=int)
     parser.add_argument("--fourier_dim", default=256, type=int)
     parser.add_argument("--sigma", default=1.0, type=float)
+    parser.add_argument("--omega", default=30.0, type=float)
     parser.add_argument("--concatenate_fourier", action='store_true')
     parser.add_argument("--train_B", action='store_true')
 
@@ -103,19 +105,27 @@ if __name__ == "__main__":
 
     # custom network kwargs
     kwargs['network_class'] = NETWORK_CLASSES[args.network_class]
-    basic_network_kwargs = dict(n_hidden=args.n_hidden,
+    mlp_network_kwargs = dict(n_hidden=args.n_hidden,
+                              hidden_dim=args.hidden_dim,
+                              first_dim=args.first_dim)
+    fourier_network_kwargs = dict(n_hidden=args.n_hidden,
+                                  hidden_dim=args.hidden_dim,
+                                  fourier_dim=args.fourier_dim,
+                                  sigma=args.sigma,
+                                  concatenate_fourier=args.concatenate_fourier,
+                                  train_B=args.train_B)
+    siren_network_kwargs = dict(n_hidden=args.n_hidden,
                                 hidden_dim=args.hidden_dim,
-                                first_dim=args.first_dim)
-    full_network_kwargs = dict(n_hidden=args.n_hidden,
-                               hidden_dim=args.hidden_dim,
-                               fourier_dim=args.fourier_dim,
-                               sigma=args.sigma,
-                               concatenate_fourier=args.concatenate_fourier,
-                               train_B=args.train_B)
-    if args.network_class == 'MLP':
-        kwargs['network_kwargs'] = basic_network_kwargs
+                                first_omega_0=args.omega,
+                                hidden_omega_0=args.omega)
+    if args.network_class in {'MLP', 'D2RL'}:
+        kwargs['network_kwargs'] = mlp_network_kwargs
+    elif args.network_class == 'FourierMLP':
+        kwargs['network_kwargs'] = fourier_network_kwargs
+    elif args.network_class == 'Siren':
+        kwargs['network_kwargs'] = siren_network_kwargs
     else:
-        kwargs['network_kwargs'] = full_network_kwargs
+        raise NotImplementedError
 
     # Initialize policy
     if args.policy == "TD3":
@@ -136,8 +146,7 @@ if __name__ == "__main__":
         policy.load(f"./models/{policy_file}")
 
     # change the kwargs for logging and plotting purposes
-    if args.network_class == 'MLP':
-        kwargs['network_kwargs'] = full_network_kwargs
+    kwargs['network_kwargs'] = {**mlp_network_kwargs, **fourier_network_kwargs, **siren_network_kwargs}
     kwargs['expID'] = args.expID
     kwargs['seed'] = args.seed
     kwargs['first_dim'] = max(args.hidden_dim, args.first_dim)
@@ -210,6 +219,6 @@ if __name__ == "__main__":
             logger.record_tabular('Eval returns', evaluations[-1])
             logger.dump_tabular(with_prefix=False, with_timestamp=False)
             np.save(osp.join(log_dir, 'evaluations.npy'), evaluations)
-            if (t+1) % 250000 == 0:
-                policy.save(osp.join(log_dir, f'itr{t+1}'))
+            if (t + 1) % 250000 == 0:
+                policy.save(osp.join(log_dir, f'itr{t + 1}'))
     policy.save(osp.join(log_dir, f'final'))  # might be unnecessary if everything divides out properly
