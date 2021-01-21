@@ -17,8 +17,7 @@ for env in envs:
                 commands.append(f'python main.py --policy SAC --env {env} --network_class FourierMLP --sigma {sigma} --fourier_dim {fourier_dim} {depth} {type}')
     count = 0
     for command in commands:
-        gpus = list(range(0, 5))
-        gpus = list(range(3,10))
+        gpus = list(range(8,10))
         for seed in [10, 20, 30]:
             print(f'CUDA_VISIBLE_DEVICES={gpus[count]} {command} --seed {seed} &')
             count = (count + 1) % len(gpus)
