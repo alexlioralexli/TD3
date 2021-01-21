@@ -148,7 +148,7 @@ class D2RL(nn.Module):
         for _ in range(n_hidden - 1):
             layers.append(nn.Linear(first_dim + input_size, hidden_dim))
             first_dim = hidden_dim
-        layers.append(nn.Linear(first_dim, output_size))
+        layers.append(nn.Linear(first_dim + input_size, output_size))
         self.mlp = nn.ModuleList(layers)
 
     def forward(self, x):
@@ -160,7 +160,7 @@ class D2RL(nn.Module):
         x = F.relu(self.mlp[0](x_input))
         for i in range(1, self.n_hidden):
             x = F.relu(self.mlp[i](torch.cat((x, x_input), dim=1)))
-        x = self.mlp[-1](x)
+        x = self.mlp[-1](torch.cat((x, x_input), dim=1))
         if self.add_tanh:
             x = F.tanh(x)
         return x

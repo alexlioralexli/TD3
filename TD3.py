@@ -72,7 +72,7 @@ class TD3(object):
 
         self.total_it = 0
 
-    def select_action(self, state):
+    def select_action(self, state, evaluate=True):
         state = torch.FloatTensor(state.reshape(1, -1)).to(device)
         return self.actor(state).cpu().data.numpy().flatten()
 

@@ -7,6 +7,7 @@ import utils
 import TD3
 import OurDDPG
 import DDPG
+from sac import SAC
 from models.mlp import MLP, FourierMLP, Siren, D2RL
 from logging_utils import save_kwargs, create_env_folder
 import os.path as osp
@@ -31,7 +32,7 @@ def eval_policy(policy, env_name, seed, eval_episodes=10):
     for _ in range(eval_episodes):
         state, done = eval_env.reset(), False
         while not done:
-            action = policy.select_action(np.array(state))
+            action = policy.select_action(np.array(state), evaluate=True)
             state, reward, done, _ = eval_env.step(action)
             avg_reward += reward
 
@@ -45,20 +46,23 @@ def eval_policy(policy, env_name, seed, eval_episodes=10):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--policy", default="TD3")  # Policy name (TD3, DDPG or OurDDPG)
+    parser.add_argument("--policy", default="TD3", type=str, choices=['TD3', 'DDPG', 'OurDDPG', 'SAC'])
     parser.add_argument("--env", default="HalfCheetah-v2")  # OpenAI gym environment name
     parser.add_argument("--seed", default=0, type=int)  # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--start_timesteps", default=25e3, type=int)  # Time steps initial random policy is used
     parser.add_argument("--eval_freq", default=5e3, type=int)  # How often (time steps) we evaluate
     parser.add_argument("--max_timesteps", default=1e6, type=int)  # Max time steps to run environment
-    parser.add_argument("--expl_noise", default=0.1)  # Std of Gaussian exploration noise
+    parser.add_argument("--expl_noise", type=float, default=0.1)  # Std of Gaussian exploration noise
     parser.add_argument("--batch_size", default=256, type=int)  # Batch size for both actor and critic
-    parser.add_argument("--discount", default=0.99)  # Discount factor
-    parser.add_argument("--tau", default=0.005)  # Target network update rate
-    parser.add_argument("--policy_noise", default=0.2)  # Noise added to target policy during critic update
-    parser.add_argument("--noise_clip", default=0.5)  # Range to clip target policy noise
-    parser.add_argument("--policy_freq", default=2, type=int)  # Frequency of delayed policy updates
-    parser.add_argument("--load_model", default="")  # Model load file name, "" doesn't load, "default" uses file_name
+    parser.add_argument("--discount", type=float, default=0.99)  # Discount factor
+    parser.add_argument("--tau", type=float, default=0.005)  # Target network update rate
+    parser.add_argument("--lr", type=float, default=3E-4)  # Target network update rate
+    parser.add_argument("--alpha", type=float, default=0.2)
+    parser.add_argument("--policy_noise", type=float, default=0.2)  # Noise added to target policy during critic update
+    parser.add_argument("--noise_clip", type=float, default=0.5)  # Range to clip target policy noise
+    parser.add_argument("--policy_freq", type=int, default=2)  # Frequency of delayed policy updates
+    parser.add_argument("--load_model", type=str, default="")  # Model load file name, "" doesn't load, "default" uses file_name
+    parser.add_argument("--automatic_entropy_tuning", action='store_true')
 
     # network kwargs
     parser.add_argument("--network_class", default="MLP", choices=['MLP', 'FourierMLP', 'Siren', 'D2RL'])
@@ -138,6 +142,12 @@ if __name__ == "__main__":
         policy = OurDDPG.DDPG(**kwargs)
     elif args.policy == "DDPG":
         policy = DDPG.DDPG(**kwargs)
+    elif args.policy == "SAC":
+        kwargs['lr'] = args.lr
+        kwargs['alpha'] = args.alpha
+        kwargs['automatic_entropy_tuning'] = args.automatic_entropy_tuning
+        # left out dmc
+        policy = SAC(**kwargs)
     else:
         raise NotImplementedError
 
@@ -175,17 +185,18 @@ if __name__ == "__main__":
     episode_num = 0
 
     for t in range(int(args.max_timesteps)):
-
         episode_timesteps += 1
 
         # Select action randomly or according to policy
         if t < args.start_timesteps:
             action = env.action_space.sample()
-        else:
+        elif args.policy in {'TD3', 'DDPG', 'OurDDPG'}:
             action = (
                     policy.select_action(np.array(state))
                     + np.random.normal(0, max_action * args.expl_noise, size=action_dim)
             ).clip(-max_action, max_action)
+        elif args.policy == 'SAC':
+            action = policy.select_action(np.array(state))
 
         # Perform action
         next_state, reward, done, _ = env.step(action)
