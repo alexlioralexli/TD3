@@ -46,7 +46,8 @@ class SAC(object):
 
         # Target Entropy = −dim(A) (e.g. , -6 for HalfCheetah-v2) as given in the paper
         if self.automatic_entropy_tuning is True:
-            self.target_entropy = -torch.prod(torch.Tensor(action_dim).to(device)).item()
+            self.target_entropy = - action_dim
+            # self.target_entropy = -torch.prod(torch.Tensor(action_dim).to(device)).item()  # something weird here
             self.log_alpha = torch.zeros(1, requires_grad=True, device=device)
             if dmc:
                 self.alpha_optim = Adam([self.log_alpha], lr=lr, betas=(0.9, 0.999))
@@ -67,12 +68,6 @@ class SAC(object):
         self.total_it += 1
         # Sample a batch from memory
         state_batch, action_batch, next_state_batch, reward_batch, mask_batch = memory.sample(batch_size)
-
-        # state_batch = torch.FloatTensor(state_batch).to(device)
-        # next_state_batch = torch.FloatTensor(next_state_batch).to(device)
-        # action_batch = torch.FloatTensor(action_batch).to(device)
-        # reward_batch = torch.FloatTensor(reward_batch).to(device).unsqueeze(1)
-        # mask_batch = torch.FloatTensor(mask_batch).to(device).unsqueeze(1)
 
         with torch.no_grad():
             next_state_action, next_state_log_pi, _ = self.policy.sample(next_state_batch)
@@ -102,8 +97,7 @@ class SAC(object):
         self.policy_optim.step()
 
         if self.automatic_entropy_tuning:
-            alpha_loss = -(self.log_alpha * (log_pi + self.target_entropy).detach()).mean()
-
+            alpha_loss = -(self.log_alpha.exp() * (log_pi + self.target_entropy).detach()).mean()
             self.alpha_optim.zero_grad()
             alpha_loss.backward()
             self.alpha_optim.step()
