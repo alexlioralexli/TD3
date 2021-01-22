@@ -46,10 +46,10 @@ class SAC(object):
 
         # Target Entropy = −dim(A) (e.g. , -6 for HalfCheetah-v2) as given in the paper
         if self.automatic_entropy_tuning is True:
-            self.target_entropy = -torch.prod(torch.Tensor(action_dim.shape).to(device)).item()
+            self.target_entropy = -torch.prod(torch.Tensor(action_dim).to(device)).item()
             self.log_alpha = torch.zeros(1, requires_grad=True, device=device)
             if dmc:
-                self.alpha_optim = Adam([self.log_alpha], lr=1e-4, betas=(0.9, 0.999))
+                self.alpha_optim = Adam([self.log_alpha], lr=lr, betas=(0.9, 0.999))
             else:
                 self.alpha_optim = Adam([self.log_alpha], lr=lr)
 

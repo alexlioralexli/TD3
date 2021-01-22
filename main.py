@@ -1,9 +1,9 @@
 import numpy as np
 import torch
-import gym
 import argparse
 import os
 import utils
+from datetime import datetime
 import TD3
 import OurDDPG
 import DDPG
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     parser.add_argument("--discount", type=float, default=0.99)  # Discount factor
     parser.add_argument("--tau", type=float, default=0.005)  # Target network update rate
     parser.add_argument("--lr", type=float, default=3E-4)  # Target network update rate
-    parser.add_argument("--alpha", type=float, default=0.2)
+    parser.add_argument("--alpha", type=float, default=0.1)
     parser.add_argument("--policy_noise", type=float, default=0.2)  # Noise added to target policy during critic update
     parser.add_argument("--noise_clip", type=float, default=0.5)  # Range to clip target policy noise
     parser.add_argument("--policy_freq", type=int, default=2)  # Frequency of delayed policy updates
@@ -163,7 +163,7 @@ if __name__ == "__main__":
     kwargs['env'] = args.env
 
     # set up logging
-    log_dir = create_env_folder(args.env, args.expID, 'td3', args.network_class, test=args.test)
+    log_dir = create_env_folder(args.env, args.expID, args.policy, args.network_class, test=args.test)
     save_kwargs(kwargs, log_dir)
     tabular_log_path = osp.join(log_dir, 'progress.csv')
     text_log_path = osp.join(log_dir, 'debug.log')
@@ -183,6 +183,7 @@ if __name__ == "__main__":
     episode_reward = 0
     episode_timesteps = 0
     episode_num = 0
+    curr_time = datetime.now()
 
     for t in range(int(args.max_timesteps)):
         episode_timesteps += 1
@@ -225,11 +226,14 @@ if __name__ == "__main__":
         # Evaluate episode
         if (t + 1) % args.eval_freq == 0:
             evaluations.append(eval_policy(policy, args.env, args.seed))
+            new_time = datetime.now()
+            time_elapsed = (new_time - curr_time).total_seconds()
+            curr_time = new_time
 
             logger.record_tabular('Timestep', t)
             logger.record_tabular('Eval returns', evaluations[-1])
+            logger.record_tabular('Time since last eval (s)', time_elapsed)
             logger.dump_tabular(with_prefix=False, with_timestamp=False)
-            np.save(osp.join(log_dir, 'evaluations.npy'), evaluations)
             if (t + 1) % 250000 == 0:
                 policy.save(osp.join(log_dir, f'itr{t + 1}'))
     policy.save(osp.join(log_dir, f'final'))  # might be unnecessary if everything divides out properly
