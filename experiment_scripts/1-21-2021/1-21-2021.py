@@ -1,6 +1,6 @@
 # expID should start with 19
 
-envs = ['Humanoid-v2', 'dm.finger.turn_hard', 'dm.acrobot.swingup', 'dm.acrobot.swingup_sparse']
+envs = ['Humanoid-v2', 'dm.finger.turn_hard', 'dm.acrobot.swingu    p', 'dm.acrobot.swingup_sparse']
 for env in envs:
     commands = []
     for depth in ['--n_hidden 4']:
@@ -17,7 +17,8 @@ for env in envs:
                 commands.append(f'python main.py --policy SAC --automatic_entropy_tuning --env {env} --network_class FourierMLP --sigma {sigma} --fourier_dim {fourier_dim} {depth} {type}')
     count = 0
     for command in commands:
-        gpus = list(range(8,10))
+        # gpus = list(range(8,10))
+        gpus = [2]
         for seed in [10, 20, 30]:
             print(f'CUDA_VISIBLE_DEVICES={gpus[count]} {command} --seed {seed} &')
             count = (count + 1) % len(gpus)
