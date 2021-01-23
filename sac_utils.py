@@ -54,6 +54,7 @@ class GaussianPolicy(nn.Module):
     def forward(self, state):
         x = self.policy_net(state)
         mean, log_std = torch.chunk(x, 2, dim=1)
+        log_std = torch.clamp(log_std, min=LOG_SIG_MIN, max=LOG_SIG_MAX)
         return mean, log_std
 
     def sample(self, state):

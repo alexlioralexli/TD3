@@ -22,7 +22,7 @@ class SAC(object):
                  lr=3e-4,
                  discount=0.99,
                  tau=0.005,
-                 alpha=0.2,
+                 alpha=0.1,
                  policy_freq=2,
                  automatic_entropy_tuning=True,
                  dmc=False):
@@ -36,13 +36,13 @@ class SAC(object):
         policy_net = network_class(state_dim, action_dim * 2, add_tanh=False, **network_kwargs)
         self.policy = GaussianPolicy(policy_net, max_action).to(
             device)
-        self.policy_optim = Adam(self.policy.parameters(), lr=lr)
+        self.policy_optim = Adam(self.policy.parameters(), lr=lr, betas=(0.9, 0.999))
 
         q1 = network_class(state_dim + action_dim, 1, **network_kwargs)
         q2 = network_class(state_dim + action_dim, 1, **network_kwargs)
         self.critic = Critic(q1, q2).to(device)
         self.critic_target = copy.deepcopy(self.critic)
-        self.critic_optim = Adam(self.critic.parameters(), lr=lr)
+        self.critic_optim = Adam(self.critic.parameters(), lr=lr, betas=(0.9, 0.999))
 
         # Target Entropy = −dim(A) (e.g. , -6 for HalfCheetah-v2) as given in the paper
         if self.automatic_entropy_tuning is True:
@@ -50,9 +50,9 @@ class SAC(object):
             # self.target_entropy = -torch.prod(torch.Tensor(action_dim).to(device)).item()  # something weird here
             self.log_alpha = torch.zeros(1, requires_grad=True, device=device)
             if dmc:
-                self.alpha_optim = Adam([self.log_alpha], lr=lr, betas=(0.9, 0.999))
+                self.alpha_optim = Adam([self.log_alpha], lr=1e-4, betas=(0.9, 0.999))
             else:
-                self.alpha_optim = Adam([self.log_alpha], lr=lr)
+                self.alpha_optim = Adam([self.log_alpha], lr=1e-4, betas=(0.9,0.999))
 
         self.total_it = 0
 
