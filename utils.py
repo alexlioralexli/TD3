@@ -2,7 +2,7 @@ import gym
 import torch
 import dm_control2gym
 import numpy as np
-
+import dmc2gym
 
 class ReplayBuffer(object):
     def __init__(self, state_dim, action_dim, max_size=int(1e6)):
@@ -40,11 +40,22 @@ class ReplayBuffer(object):
         )
 
 
-def make_env(env_name):
+def make_env(env_name, seed=10):
     if env_name.startswith("dm"):
         _, domain, task = env_name.split('.')
-        env = dm_control2gym.make(domain_name=domain, task_name=task)
-        env._max_episode_steps = 1000
+        env = dmc2gym.make(domain_name=domain,
+                           task_name=task,
+                           seed=seed,
+                           visualize_reward=True)
+        # env = dm_control2gym.make(domain_name=domain, task_name=task)
+        # env._max_episode_steps = 1000
+        assert env.action_space.low.min() >= -1
+        assert env.action_space.high.max() <= 1
+
+        return env
+
+
+
     else:
         env = gym.make(env_name)
     return env

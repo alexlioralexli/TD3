@@ -14,6 +14,9 @@ import os.path as osp
 from rlkit_logging import logger
 from utils import make_env
 
+# testing
+from pytorch_sac.agent.sac import SACAgent as PytorchSAC
+
 NETWORK_CLASSES = dict(
     MLP=MLP,
     FourierMLP=FourierMLP,
@@ -46,7 +49,7 @@ def eval_policy(policy, env_name, seed, eval_episodes=10):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--policy", default="TD3", type=str, choices=['TD3', 'DDPG', 'OurDDPG', 'SAC'])
+    parser.add_argument("--policy", default="TD3", type=str, choices=['TD3', 'DDPG', 'OurDDPG', 'SAC', 'PytorchSAC'])
     parser.add_argument("--env", default="HalfCheetah-v2")  # OpenAI gym environment name
     parser.add_argument("--seed", default=0, type=int)  # Sets Gym, PyTorch and Numpy seeds
     parser.add_argument("--start_timesteps", default=25e3, type=int)  # Time steps initial random policy is used
@@ -148,6 +151,10 @@ if __name__ == "__main__":
         kwargs['automatic_entropy_tuning'] = args.automatic_entropy_tuning
         # left out dmc
         policy = SAC(**kwargs)
+    elif args.policy == 'PytorchSAC':
+        kwargs['action_range'] = [float(env.action_space.low.min()), float(env.action_space.high.max())]
+        del kwargs['max_action']
+        policy = PytorchSAC(**kwargs)
     else:
         raise NotImplementedError
 
@@ -193,11 +200,11 @@ if __name__ == "__main__":
             action = env.action_space.sample()
         elif args.policy in {'TD3', 'DDPG', 'OurDDPG'}:
             action = (
-                    policy.select_action(np.array(state))
+                    policy.select_action(np.array(state), evaluate=False)
                     + np.random.normal(0, max_action * args.expl_noise, size=action_dim)
             ).clip(-max_action, max_action)
-        elif args.policy == 'SAC':
-            action = policy.select_action(np.array(state))
+        elif args.policy in {'SAC', 'PytorchSAC'}:
+            action = policy.select_action(np.array(state), evaluate=False)
 
         # Perform action
         next_state, reward, done, _ = env.step(action)
