@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+CUDA_VISIBLE_DEVICES=1 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.run --network_class FourierMLP --sigma 0.01 --fourier_dim 1024 --concatenate_fourier --train_B --seed 10 &
+CUDA_VISIBLE_DEVICES=2 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.run --network_class FourierMLP --sigma 0.01 --fourier_dim 1024 --concatenate_fourier --train_B --seed 20 &
+CUDA_VISIBLE_DEVICES=3 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.run --network_class FourierMLP --sigma 0.001 --fourier_dim 1024 --concatenate_fourier --train_B --seed 10 &
+CUDA_VISIBLE_DEVICES=1 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.run --network_class FourierMLP --sigma 0.001 --fourier_dim 1024 --concatenate_fourier --train_B --seed 20 &
+CUDA_VISIBLE_DEVICES=2 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.stand --seed 10 &
+CUDA_VISIBLE_DEVICES=3 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.stand --seed 20 &
+CUDA_VISIBLE_DEVICES=1 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.stand --network_class FourierMLP --sigma 0.01 --fourier_dim 1024 --train_B --seed 10 &
+CUDA_VISIBLE_DEVICES=2 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.stand --network_class FourierMLP --sigma 0.01 --fourier_dim 1024 --train_B --seed 20 &
+CUDA_VISIBLE_DEVICES=3 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.stand --network_class FourierMLP --sigma 0.001 --fourier_dim 1024 --train_B --seed 10 &
+CUDA_VISIBLE_DEVICES=1 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.stand --network_class FourierMLP --sigma 0.001 --fourier_dim 1024 --train_B --seed 20 &
+CUDA_VISIBLE_DEVICES=2 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.stand --network_class FourierMLP --sigma 0.01 --fourier_dim 1024 --concatenate_fourier --train_B --seed 10 &
+CUDA_VISIBLE_DEVICES=3 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.stand --network_class FourierMLP --sigma 0.01 --fourier_dim 1024 --concatenate_fourier --train_B --seed 20 &
+wait $!
+CUDA_VISIBLE_DEVICES=1 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.stand --network_class FourierMLP --sigma 0.001 --fourier_dim 1024 --concatenate_fourier --train_B --seed 10 &
+CUDA_VISIBLE_DEVICES=2 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.stand --network_class FourierMLP --sigma 0.001 --fourier_dim 1024 --concatenate_fourier --train_B --seed 20 &
+CUDA_VISIBLE_DEVICES=3 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.walk --seed 10 &
+CUDA_VISIBLE_DEVICES=1 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.walk --seed 20 &
+CUDA_VISIBLE_DEVICES=2 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.walk --network_class FourierMLP --sigma 0.01 --fourier_dim 1024 --train_B --seed 10 &
+CUDA_VISIBLE_DEVICES=3 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.walk --network_class FourierMLP --sigma 0.01 --fourier_dim 1024 --train_B --seed 20 &
+CUDA_VISIBLE_DEVICES=1 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.walk --network_class FourierMLP --sigma 0.001 --fourier_dim 1024 --train_B --seed 10 &
+CUDA_VISIBLE_DEVICES=2 python maAn.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.walk --network_class FourierMLP --sigma 0.001 --fourier_dim 1024 --train_B --seed 20 &
+CUDA_VISIBLE_DEVICES=3 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.walk --network_class FourierMLP --sigma 0.01 --fourier_dim 1024 --concatenate_fourier --train_B --seed 10 &
+CUDA_VISIBLE_DEVICES=1 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.walk --network_class FourierMLP --sigma 0.01 --fourier_dim 1024 --concatenate_fourier --train_B --seed 20 &
+CUDA_VISIBLE_DEVICES=2 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.walk --network_class FourierMLP --sigma 0.001 --fourier_dim 1024 --concatenate_fourier --train_B --seed 10 &
+CUDA_VISIBLE_DEVICES=3 python main.py --policy PytorchSAC --automatic_entropy_tuning --n_hidden 2 --hidden_dim 1024 --env dm.humanoid.walk --network_class FourierMLP --sigma 0.001 --fourier_dim 1024 --concatenate_fourier --train_B --seed 20 &
