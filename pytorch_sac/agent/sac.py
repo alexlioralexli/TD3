@@ -60,12 +60,14 @@ class SACAgent(Agent):
         self.batch_size = batch_size
         self.learnable_temperature = learnable_temperature
 
-        q1 = network_class(state_dim + action_dim, 1, **network_kwargs)
-        q2 = network_class(state_dim + action_dim, 1, **network_kwargs)
+        q1 = network_class(state_dim + action_dim, 1, add_tanh=False, **network_kwargs)
+        q2 = network_class(state_dim + action_dim, 1, add_tanh=False, **network_kwargs)
         # q1 = utils.mlp(state_dim + action_dim, 1024, 1, 2)
         # q2 = utils.mlp(state_dim + action_dim, 1024, 1, 2)
+        q1_target = network_class(state_dim + action_dim, 1, add_tanh=False, **network_kwargs)
+        q2_target = network_class(state_dim + action_dim, 1, add_tanh=False, **network_kwargs)
         self.critic = DoubleQCritic(q1, q2).to(self.device)
-        self.critic_target = DoubleQCritic(q1, q2).to(self.device)
+        self.critic_target = DoubleQCritic(q1_target, q2_target).to(self.device)
         self.critic_target.load_state_dict(self.critic.state_dict())
 
         # policy_net = utils.mlp(state_dim, 1024, 2 * action_dim, 2)

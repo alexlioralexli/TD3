@@ -1,6 +1,5 @@
 import gym
 import torch
-import dm_control2gym
 import numpy as np
 import dmc2gym
 
@@ -47,15 +46,8 @@ def make_env(env_name, seed=10):
                            task_name=task,
                            seed=seed,
                            visualize_reward=True)
-        # env = dm_control2gym.make(domain_name=domain, task_name=task)
-        # env._max_episode_steps = 1000
         assert env.action_space.low.min() >= -1
         assert env.action_space.high.max() <= 1
-
-        return env
-
-
-
     else:
         env = gym.make(env_name)
     return env

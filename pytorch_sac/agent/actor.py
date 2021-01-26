@@ -53,6 +53,7 @@ class SquashedNormal(pyd.transformed_distribution.TransformedDistribution):
         return mu
 
 
+
 class DiagGaussianActor(nn.Module):
     """torch.distributions implementation of an diagonal Gaussian policy."""
     def __init__(self, trunk, log_std_bounds):
@@ -70,8 +71,7 @@ class DiagGaussianActor(nn.Module):
         # constrain log_std inside [log_std_min, log_std_max]
         log_std = torch.tanh(log_std)
         log_std_min, log_std_max = self.log_std_bounds
-        log_std = log_std_min + 0.5 * (log_std_max - log_std_min) * (log_std +
-                                                                     1)
+        log_std = log_std_min + 0.5 * (log_std_max - log_std_min) * (log_std + 1)
 
         std = log_std.exp()
 

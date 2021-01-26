@@ -4,7 +4,7 @@ import pytorch_sac.utils as utils
 
 
 class DoubleQCritic(nn.Module):
-    """Critic network, employes double Q-learning."""
+    """Critic network, employs double Q-learning."""
     def __init__(self, q1, q2):
         super().__init__()
         self.Q1 = q1

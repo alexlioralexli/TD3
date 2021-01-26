@@ -1,13 +1,8 @@
 import numpy as np
 import torch
 from torch import nn
-from torch import distributions as pyd
-import torch.nn.functional as F
-import gym
 import os
-from collections import deque
 import random
-import math
 
 class eval_mode(object):
     def __init__(self, *models):
