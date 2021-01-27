@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+CUDA_VISIBLE_DEVICES=8 taskset -c 11-12 python main.py --policy PytorchSAC --env Walker2d-v2 --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --network_class FourierMLP --sigma 0.003 --fourier_dim 1024 --concatenate_fourier --train_B --seed 20 &
+CUDA_VISIBLE_DEVICES=9 taskset -c 13,15 python main.py --policy PytorchSAC --env Walker2d-v2 --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --network_class FourierMLP --sigma 0.001 --fourier_dim 1024 --concatenate_fourier --train_B --seed 10 &
+CUDA_VISIBLE_DEVICES=8 taskset -c 16-17 python main.py --policy PytorchSAC --env Walker2d-v2 --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --network_class FourierMLP --sigma 0.001 --fourier_dim 1024 --concatenate_fourier --train_B --seed 20 &
+CUDA_VISIBLE_DEVICES=9 taskset -c 20-21 python main.py --policy PytorchSAC --env Walker2d-v2 --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --network_class FourierMLP --sigma 3e-05 --fourier_dim 1024 --concatenate_fourier --train_B --seed 10 &
+CUDA_VISIBLE_DEVICES=9 taskset -c 22-23 python main.py --policy PytorchSAC --env Walker2d-v2 --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --network_class FourierMLP --sigma 3e-05 --fourier_dim 1024 --concatenate_fourier --train_B --seed 20 &
