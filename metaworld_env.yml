@@ -1,4 +1,4 @@
-name: sb3
+name: sb3-metaworld
 channels:
   - defaults
 dependencies:
@@ -74,8 +74,8 @@ dependencies:
     - markupsafe==1.1.1
     - matplotlib==3.3.2
     - mbstrdecoder==1.0.0
+    - git+https://github.com/rlworkgroup/metaworld.git
     - msgfy==0.1.0
-    - mujoco-py==1.50.1.68
     - multidict==4.7.6
     - numpy==1.19.2
     - oauthlib==3.1.0
