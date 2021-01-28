@@ -3,6 +3,12 @@ import torch
 import numpy as np
 import dmc2gym
 
+try:
+    import metaworld
+except ImportError:
+    pass
+
+
 class ReplayBuffer(object):
     def __init__(self, state_dim, action_dim, max_size=int(1e6)):
         self.max_size = max_size
@@ -48,6 +54,15 @@ def make_env(env_name, seed=10):
                            visualize_reward=True)
         assert env.action_space.low.min() >= -1
         assert env.action_space.high.max() <= 1
+    elif env_name.startswith('mw'):
+        _, task = env_name.split('.')
+        mt10 = metaworld.MT10()
+        env = mt10.train_classes[task]()
+        tasks = [t for t in mt10.train_tasks if t.env_name == task]
+        env.set_task(tasks[0])
+        if env.max_path_length <= 150:
+            raise RuntimeError
+        env._max_episode_steps = 150  # env.max_path_length
     else:
         env = gym.make(env_name)
     return env
