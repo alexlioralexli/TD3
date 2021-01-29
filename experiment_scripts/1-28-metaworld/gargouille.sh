@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+CUDA_VISIBLE_DEVICES=9 taskset -c 10-12 python main.py --policy PytorchSAC --env mw.drawer-open-v1 --n_hidden 2 --hidden_dim 400 --batch_size 128 --start_timesteps 5000 --network_class FourierMLP --sigma 0.001 --fourier_dim 1024 --concatenate_fourier --train_B --seed 10 &
+CUDA_VISIBLE_DEVICES=9 taskset -c 17-19 python main.py --policy PytorchSAC --env mw.drawer-open-v1 --n_hidden 2 --hidden_dim 400 --batch_size 128 --start_timesteps 5000 --network_class FourierMLP --sigma 0.001 --fourier_dim 1024 --concatenate_fourier --train_B --seed 20 &
+CUDA_VISIBLE_DEVICES=9 taskset -c 20-22 python main.py --policy PytorchSAC --env mw.drawer-close-v1 --n_hidden 3 --hidden_dim 400 --first_dim 1024 --batch_size 128 --start_timesteps 5000 --seed 10 &
+CUDA_VISIBLE_DEVICES=9 taskset -c 23-25 python main.py --policy PytorchSAC --env mw.drawer-close-v1 --n_hidden 3 --hidden_dim 400 --first_dim 1024 --batch_size 128 --start_timesteps 5000 --seed 20 &

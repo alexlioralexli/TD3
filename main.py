@@ -156,6 +156,9 @@ if __name__ == "__main__":
         policy = SAC(**kwargs)
     elif args.policy == 'PytorchSAC':
         kwargs['action_range'] = [float(env.action_space.low.min()), float(env.action_space.high.max())]
+        kwargs['actor_lr'] = args.lr
+        kwargs['critic_lr'] = args.lr
+        kwargs['alpha_lr'] = args.lr
         del kwargs['max_action']
         policy = PytorchSAC(**kwargs)
     else:
