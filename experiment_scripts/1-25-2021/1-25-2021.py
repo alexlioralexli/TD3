@@ -14,6 +14,8 @@ envs = [
 'dm.humanoid.stand',
 'dm.humanoid.walk',
 ]
+
+# implicitly has --lr 1e-4 for everyhing
 total = 0
 for env in envs:
     base_str = f"python main.py --policy PytorchSAC --env {env} --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2"

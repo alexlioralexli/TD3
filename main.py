@@ -63,6 +63,7 @@ if __name__ == "__main__":
     parser.add_argument("--discount", type=float, default=0.99)  # Discount factor
     parser.add_argument("--tau", type=float, default=0.005)  # Target network update rate
     parser.add_argument("--lr", type=float, default=3E-4)  # Target network update rate
+    parser.add_argument("--alpha_lr", type=float, default=1E-4)  # Target network update rate
     parser.add_argument("--alpha", type=float, default=0.1)
     parser.add_argument("--policy_noise", type=float, default=0.2)  # Noise added to target policy during critic update
     parser.add_argument("--noise_clip", type=float, default=0.5)  # Range to clip target policy noise
@@ -158,7 +159,7 @@ if __name__ == "__main__":
         kwargs['action_range'] = [float(env.action_space.low.min()), float(env.action_space.high.max())]
         kwargs['actor_lr'] = args.lr
         kwargs['critic_lr'] = args.lr
-        kwargs['alpha_lr'] = args.lr
+        kwargs['alpha_lr'] = args.alpha_lr
         del kwargs['max_action']
         policy = PytorchSAC(**kwargs)
     else:

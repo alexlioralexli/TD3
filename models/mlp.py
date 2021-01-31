@@ -73,7 +73,7 @@ class FourierMLP(nn.Module):
         """
         x = x.view(len(x), -1)  # flatten
         # create fourier features
-        proj = 2 * np.pi * torch.matmul(x, self.B)
+        proj = (2 * np.pi) * torch.matmul(x, self.B)
         ff = torch.cat([torch.sin(proj), torch.cos(proj)], dim=-1)
         if self.concatenate_fourier:
             ff = torch.cat([x, ff], dim=-1)
