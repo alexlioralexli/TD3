@@ -1,0 +1,46 @@
+{
+  "models.mlp.FourierMLP": {
+    "concatenate_fourier": true,
+    "fourier_dim": 1024,
+    "hidden_dim": 1024,
+    "n_hidden": 2,
+    "sigma": 0.01,
+    "train_B": true
+  },
+  "models.mlp.MLP": {
+    "hidden_dim": 1024,
+    "n_hidden": 2
+  },
+
+  "dm.hopper.hop": {
+    "models.mlp.FourierMLP": {
+      "concatenate_fourier": true,
+      "fourier_dim": 1024,
+      "hidden_dim": 1024,
+      "n_hidden": 2,
+      "sigma": 0.001,
+      "train_B": true
+    },
+    "models.mlp.MLP": {
+      "hidden_dim": 1024,
+      "n_hidden": 3
+    }
+  },
+
+  "dm.walker.run": {
+    "models.mlp.FourierMLP": {
+      "concatenate_fourier": true,
+      "fourier_dim": 1024,
+      "hidden_dim": 1024,
+      "n_hidden": 2,
+      "sigma": 0.001,
+      "train_B": true
+    },
+    "models.mlp.MLP": {
+      "hidden_dim": 1024,
+      "n_hidden": 3
+    }
+  }
+}
+
+
