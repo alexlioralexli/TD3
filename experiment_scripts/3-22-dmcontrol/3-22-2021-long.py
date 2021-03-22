@@ -6,8 +6,8 @@ envs = [
 total = 0
 lr = '1e-4'
 for env in envs:
-    commands = [f"python main.py --policy PytorchSAC --env {env} --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --lr {lr} --max_timesteps 1e7"]
-    base_str = f"python main.py --policy PytorchSAC --env {env} --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr {lr} --max_timesteps 1e7"
+    commands = [f"python main.py --policy PytorchSAC --env {env} --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --lr {lr} --max_timesteps 10000000"]
+    base_str = f"python main.py --policy PytorchSAC --env {env} --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr {lr} --max_timesteps 10000000"
     fourier_dim = 1024
     sigma = 0.01
     commands.append(
