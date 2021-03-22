@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+CUDA_VISIBLE_DEVICES=9 taskset -c 0-3 python main.py --policy PytorchSAC --env dm.quadruped.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr 1e-4 --max_timesteps 10000000 --network_class FourierMLP --concatenate_fourier --train_B --sigma 0.01 --fourier_dim 1024 --seed 10 &
+CUDA_VISIBLE_DEVICES=9 taskset -c 4-7 python main.py --policy PytorchSAC --env dm.quadruped.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr 1e-4 --max_timesteps 10000000 --network_class FourierMLP --concatenate_fourier --train_B --sigma 0.01 --fourier_dim 1024 --seed 20 &
+CUDA_VISIBLE_DEVICES=9 taskset -c 8-11 python main.py --policy PytorchSAC --env dm.quadruped.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr 1e-4 --max_timesteps 10000000 --network_class FourierMLP --concatenate_fourier --train_B --sigma 0.01 --fourier_dim 1024 --seed 30 &
