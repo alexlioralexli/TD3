@@ -15,7 +15,7 @@ for env in envs:
                   '--concatenate_fourier',
                   '--train_B',
                   '']:
-        commands.append(base_str + f' --network_class LogUniformFourierMLP --concatenate_fourier --train_B --fourier_dim {fourier_dim} {extra}')
+        commands.append(base_str + f' --network_class LogUniformFourierMLP --fourier_dim {fourier_dim} {extra}')
     count = 0
     for command in commands:
         gpus = list(range(10))
