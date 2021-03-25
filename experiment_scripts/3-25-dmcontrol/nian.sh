@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+CUDA_VISIBLE_DEVICES=2 taskset -c 12-15 python main.py --policy PytorchSAC --env dm.humanoid.stand --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr 1e-4 --network_class LogUniformFourierMLP --concatenate_fourier --train_B --fourier_dim 1024 --concatenate_fourier --seed 10 &
+CUDA_VISIBLE_DEVICES=2 taskset -c 16-19 python main.py --policy PytorchSAC --env dm.humanoid.stand --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr 1e-4 --network_class LogUniformFourierMLP --concatenate_fourier --train_B --fourier_dim 1024 --train_B --seed 10 &
+CUDA_VISIBLE_DEVICES=2 taskset -c 20-23 python main.py --policy PytorchSAC --env dm.humanoid.stand --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr 1e-4 --network_class LogUniformFourierMLP --concatenate_fourier --train_B --fourier_dim 1024  --seed 10 &

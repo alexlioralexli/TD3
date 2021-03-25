@@ -74,7 +74,55 @@ class FourierMLP(nn.Module):
         x = x.view(len(x), -1)  # flatten
         # create fourier features
         proj = (2 * np.pi) * torch.matmul(x, self.B)
-        ff = torch.cat([torch.sin(proj), torch.cos(proj)], dim=-1)
+        if self.concatenate_fourier:
+            ff = torch.cat([x, torch.sin(proj), torch.cos(proj)], dim=-1)
+        else:
+            ff = torch.cat([torch.sin(proj), torch.cos(proj)], dim=-1)
+        return self.mlp.forward(ff)
+
+class LogUniformFourierMLP(nn.Module):
+    def __init__(self,
+                 input_size,
+                 output_size,
+                 n_hidden=1,
+                 hidden_dim=256,
+                 fourier_dim=256,
+                 train_B=False,
+                 concatenate_fourier=False,
+                 add_tanh=False):
+        super().__init__()
+
+        # create B
+        k = (fourier_dim - 1) // input_size + 1  # ensure that we have at least fourier_dim dimensions
+        actual_fourier_dim = k * input_size
+        B = torch.cat([torch.eye(input_size) * (2 ** i) for i in range(k)], dim=1)
+        self.B = nn.Parameter(B)
+        self.B.requires_grad = train_B
+        self.concatenate_fourier = concatenate_fourier
+        if self.concatenate_fourier:
+            mlp_input_dim = actual_fourier_dim + input_size
+        else:
+            mlp_input_dim = actual_fourier_dim
+
+        # create rest of the network
+        layers = [nn.Linear(mlp_input_dim, hidden_dim), nn.ReLU()]
+        for _ in range(n_hidden - 1):
+            layers.append(nn.Linear(hidden_dim, hidden_dim))
+            layers.append(nn.ReLU())
+        layers.append(nn.Linear(hidden_dim, output_size))
+        if add_tanh:
+            layers.append(nn.Tanh())
+
+        self.mlp = nn.Sequential(*layers)
+
+    def forward(self, x):
+        """
+        :param x: tensor of shape [batch_size, input_size]
+        :return: logits: tensor of shape [batch_size, n_classes]
+        """
+        x = x.view(len(x), -1)  # flatten
+        # create fourier features
+        ff = torch.sin(np.pi * torch.matmul(x, self.B))
         if self.concatenate_fourier:
             ff = torch.cat([x, ff], dim=-1)
         return self.mlp.forward(ff)

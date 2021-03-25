@@ -8,7 +8,7 @@ import TD3
 import OurDDPG
 import DDPG
 from sac import SAC
-from models.mlp import MLP, FourierMLP, Siren, D2RL
+from models.mlp import MLP, FourierMLP, LogUniformFourierMLP, Siren, D2RL
 from logging_utils import save_kwargs, create_env_folder
 import os.path as osp
 from rlkit_logging import logger
@@ -20,6 +20,7 @@ from pytorch_sac.agent.sac import SACAgent as PytorchSAC
 NETWORK_CLASSES = dict(
     MLP=MLP,
     FourierMLP=FourierMLP,
+    LogUniformFourierMLP=LogUniformFourierMLP,
     Siren=Siren,
     D2RL=D2RL
 )
@@ -72,7 +73,7 @@ if __name__ == "__main__":
     parser.add_argument("--automatic_entropy_tuning", action='store_true')
 
     # network kwargs
-    parser.add_argument("--network_class", default="MLP", choices=['MLP', 'FourierMLP', 'Siren', 'D2RL'])
+    parser.add_argument("--network_class", default="MLP", choices=['MLP', 'FourierMLP', 'LogUniformFourierMLP', 'Siren', 'D2RL'])
     parser.add_argument("--n_hidden", default=1, type=int)
     parser.add_argument("--hidden_dim", default=256, type=int)
     parser.add_argument("--first_dim", default=0, type=int)
@@ -125,6 +126,11 @@ if __name__ == "__main__":
                                   sigma=args.sigma,
                                   concatenate_fourier=args.concatenate_fourier,
                                   train_B=args.train_B)
+    log_uniform_fourier_network_kwargs = dict(n_hidden=args.n_hidden,
+                                              hidden_dim=args.hidden_dim,
+                                              fourier_dim=args.fourier_dim,
+                                              concatenate_fourier=args.concatenate_fourier,
+                                              train_B=args.train_B)
     siren_network_kwargs = dict(n_hidden=args.n_hidden,
                                 hidden_dim=args.hidden_dim,
                                 first_omega_0=args.omega,
@@ -133,6 +139,8 @@ if __name__ == "__main__":
         kwargs['network_kwargs'] = mlp_network_kwargs
     elif args.network_class == 'FourierMLP':
         kwargs['network_kwargs'] = fourier_network_kwargs
+    elif args.network_class == 'LogUniformFourierMLP':
+        kwargs['network_kwargs'] = log_uniform_fourier_network_kwargs
     elif args.network_class == 'Siren':
         kwargs['network_kwargs'] = siren_network_kwargs
     else:
