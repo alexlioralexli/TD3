@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+CUDA_VISIBLE_DEVICES=2 taskset -c 12-14 python main.py --policy PytorchSAC --env dm.hopper.hop --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr 1e-4 --network_class FourierMLP --concatenate_fourier --train_B --sigma 0.001 --fourier_dim 1024 --seed 30 &
+CUDA_VISIBLE_DEVICES=2 taskset -c 15-17 python main.py --policy PytorchSAC --env dm.hopper.hop --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr 1e-4 --network_class FourierMLP --concatenate_fourier --train_B --sigma 0.003 --fourier_dim 1024 --seed 20 &
+CUDA_VISIBLE_DEVICES=2 taskset -c 18-20 python main.py --policy PytorchSAC --env dm.hopper.hop --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr 1e-4 --network_class FourierMLP --concatenate_fourier --train_B --sigma 0.003 --fourier_dim 1024 --seed 30 &

@@ -126,21 +126,14 @@ if __name__ == "__main__":
                                   sigma=args.sigma,
                                   concatenate_fourier=args.concatenate_fourier,
                                   train_B=args.train_B)
-    log_uniform_fourier_network_kwargs = dict(n_hidden=args.n_hidden,
-                                              hidden_dim=args.hidden_dim,
-                                              fourier_dim=args.fourier_dim,
-                                              concatenate_fourier=args.concatenate_fourier,
-                                              train_B=args.train_B)
     siren_network_kwargs = dict(n_hidden=args.n_hidden,
                                 hidden_dim=args.hidden_dim,
                                 first_omega_0=args.omega,
                                 hidden_omega_0=args.omega)
     if args.network_class in {'MLP', 'D2RL'}:
         kwargs['network_kwargs'] = mlp_network_kwargs
-    elif args.network_class == 'FourierMLP':
+    elif args.network_class in {'FourierMLP', 'LogUniformFourierMLP'}:
         kwargs['network_kwargs'] = fourier_network_kwargs
-    elif args.network_class == 'LogUniformFourierMLP':
-        kwargs['network_kwargs'] = log_uniform_fourier_network_kwargs
     elif args.network_class == 'Siren':
         kwargs['network_kwargs'] = siren_network_kwargs
     else:

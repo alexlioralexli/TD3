@@ -86,6 +86,7 @@ class LogUniformFourierMLP(nn.Module):
                  output_size,
                  n_hidden=1,
                  hidden_dim=256,
+                 sigma=2.0,
                  fourier_dim=256,
                  train_B=False,
                  concatenate_fourier=False,
@@ -95,7 +96,8 @@ class LogUniformFourierMLP(nn.Module):
         # create B
         k = (fourier_dim - 1) // input_size + 1  # ensure that we have at least fourier_dim dimensions
         actual_fourier_dim = k * input_size
-        B = torch.cat([torch.eye(input_size) * (2 ** i) for i in range(k)], dim=1)
+        multiplier = sigma ** (1 / (k - 1))
+        B = torch.cat([torch.eye(input_size) * (multiplier ** i) for i in range(k)], dim=1)
         self.B = nn.Parameter(B)
         self.B.requires_grad = train_B
         self.concatenate_fourier = concatenate_fourier
