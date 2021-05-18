@@ -70,7 +70,8 @@ REGION_TO_GPU_AWS_IMAGE_ID = {
     # 'us-east-1': "ami-0b69ea66ff7391e80",
     'us-east-1': 'ami-084e787069ee27fb7',
     'us-west-2': "ami-076347b8649dddb00",
-    'us-east-2': "ami-024f0e84c5a8282a8",
+    'us-east-2': "ami-024def4b62933fe1c",
+    # 'us-east-2': "ami-024f0e84c5a8282a8",
     'us-west-1': "ami-07ef6e8df35a09c16"
 }
 

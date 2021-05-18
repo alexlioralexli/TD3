@@ -58,9 +58,10 @@ def experiment(variant):
     env = make_env(variant['env'])
 
     # Set seeds
-    env.seed(variant['seed'])
-    torch.manual_seed(variant['seed'])
-    np.random.seed(variant['seed'])
+    variant['seed'] = int(variant['seed'])
+    env.seed(int(variant['seed']))
+    torch.manual_seed(int(variant['seed']))
+    np.random.seed(int(variant['seed']))
 
     state_dim = env.observation_space.shape[0]
     action_dim = env.action_space.shape[0]

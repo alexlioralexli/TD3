@@ -1,2 +1,8 @@
 .idea
 logs/*
+__pycache__/
+.DS_Store
+data/
+*/mjkey.txt
+*/__pycache__/
+
