@@ -11,8 +11,10 @@ from sac import SAC
 from models.mlp import MLP, FourierMLP, LogUniformFourierMLP, Siren, D2RL
 from logging_utils import save_kwargs, create_env_folder
 import os.path as osp
-from rlkit_logging import logger
+
 from utils import make_env
+from launchers.launcher_util import setup_logger, set_seed, run_experiment
+import multiprocessing
 
 # testing
 from pytorch_sac.agent.sac import SACAgent as PytorchSAC
@@ -51,6 +53,170 @@ def eval_policy(policy, env_name, seed, eval_episodes=10):
     return avg_reward
 
 
+def experiment(variant):
+    from rlkit_logging import logger
+    env = make_env(variant['env'])
+
+    # Set seeds
+    env.seed(variant['seed'])
+    torch.manual_seed(variant['seed'])
+    np.random.seed(variant['seed'])
+
+    state_dim = env.observation_space.shape[0]
+    action_dim = env.action_space.shape[0]
+    max_action = float(env.action_space.high[0])
+
+    kwargs = {
+        "state_dim": state_dim,
+        "action_dim": action_dim,
+        "max_action": max_action,
+        "discount": variant['discount'],
+        "tau": variant['tau']
+    }
+
+    # custom network kwargs
+    kwargs['network_class'] = NETWORK_CLASSES[variant['network_class']]
+    mlp_network_kwargs = dict(n_hidden=variant['n_hidden'],
+                              hidden_dim=variant['hidden_dim'],
+                              first_dim=variant['first_dim'])
+    fourier_network_kwargs = dict(n_hidden=variant['n_hidden'],
+                                  hidden_dim=variant['hidden_dim'],
+                                  fourier_dim=variant['fourier_dim'],
+                                  sigma=variant['sigma'],
+                                  concatenate_fourier=variant['concatenate_fourier'],
+                                  train_B=variant['train_B'])
+    siren_network_kwargs = dict(n_hidden=variant['n_hidden'],
+                                hidden_dim=variant['hidden_dim'],
+                                first_omega_0=variant['omega'],
+                                hidden_omega_0=variant['omega'])
+    if variant['network_class'] in {'MLP', 'D2RL'}:
+        kwargs['network_kwargs'] = mlp_network_kwargs
+    elif variant['network_class'] in {'FourierMLP', 'LogUniformFourierMLP'}:
+        kwargs['network_kwargs'] = fourier_network_kwargs
+    elif variant['network_class'] == 'Siren':
+        kwargs['network_kwargs'] = siren_network_kwargs
+    else:
+        raise NotImplementedError
+
+    # Initialize policy
+    if variant['policy'] == "TD3":
+        # Target policy smoothing is scaled wrt the action scale
+        kwargs["policy_noise"] = variant['policy_noise * max_action']
+        kwargs["noise_clip"] = variant['noise_clip * max_action']
+        kwargs["policy_freq"] = variant['policy_freq']
+        policy = TD3.TD3(**kwargs)
+    elif variant['policy'] == "OurDDPG":
+        policy = OurDDPG.DDPG(**kwargs)
+    elif variant['policy'] == "DDPG":
+        policy = DDPG.DDPG(**kwargs)
+    elif variant['policy'] == "SAC":
+        kwargs['lr'] = variant['lr']
+        kwargs['alpha'] = variant['alpha']
+        kwargs['automatic_entropy_tuning'] = variant['automatic_entropy_tuning']
+        kwargs['weight_decay'] = variant['weight_decay']
+        # left out dmc
+        policy = SAC(**kwargs)
+    elif variant['policy'] == 'PytorchSAC':
+        kwargs['action_range'] = [float(env.action_space.low.min()), float(env.action_space.high.max())]
+        kwargs['actor_lr'] = variant['lr']
+        kwargs['critic_lr'] = variant['lr']
+        kwargs['alpha_lr'] = variant['alpha_lr']
+        kwargs['weight_decay'] = variant['weight_decay']
+        kwargs['no_target'] = variant['no_target']
+        kwargs['mlp_policy'] = variant['mlp_policy']
+        kwargs['mlp_qf'] = variant['mlp_qf']
+        del kwargs['max_action']
+        policy = PytorchSAC(**kwargs)
+    else:
+        raise NotImplementedError
+
+    if variant['load_model'] != "":
+        policy_file = file_name if variant['load_model'] == "default" else variant['load_model']
+        policy.load(f"./models/{policy_file}")
+
+    # change the kwargs for logging and plotting purposes
+    kwargs['network_kwargs'] = {**mlp_network_kwargs, **fourier_network_kwargs, **siren_network_kwargs}
+    kwargs['expID'] = variant['expID']
+    kwargs['seed'] = variant['seed']
+    kwargs['first_dim'] = max(variant['hidden_dim'], variant['first_dim'])
+    kwargs['env'] = variant['env']
+
+    # set up logging
+    # log_dir = create_env_folder(args.env, args.expID, args.policy, args.network_class, test=args.test)
+    # save_kwargs(kwargs, log_dir)
+    # tabular_log_path = osp.join(log_dir, 'progress.csv')
+    # text_log_path = osp.join(log_dir, 'debug.log')
+
+    # logger.add_text_output(text_log_path)
+    # logger.add_tabular_output(tabular_log_path)
+    # exp_name = f'{args.env}-td3-exp{args.expID}'
+    # logger.push_prefix("[%s] " % exp_name)
+    policy.save(osp.join(logger.get_snapshot_dir(), f'itr0'))
+
+    replay_buffer = utils.ReplayBuffer(state_dim, action_dim)
+
+    # Evaluate untrained policy
+    evaluations = [eval_policy(policy, variant['env'], variant['seed'])]
+
+    state, done = env.reset(), False
+    episode_reward = 0
+    episode_timesteps = 0
+    episode_num = 0
+    curr_time = datetime.now()
+
+    for t in range(int(variant['max_timesteps'])):
+        episode_timesteps += 1
+
+        # Select action randomly or according to policy
+        if t < variant['start_timesteps']:
+            action = env.action_space.sample()
+        elif variant['policy'] in {'TD3', 'DDPG', 'OurDDPG'}:
+            action = (
+                    policy.select_action(np.array(state), evaluate=False)
+                    + np.random.normal(0, max_action * variant['expl_noise'], size=action_dim)
+            ).clip(-max_action, max_action)
+        elif variant['policy'] in {'SAC', 'PytorchSAC'}:
+            action = policy.select_action(np.array(state), evaluate=False)
+
+        # Perform action
+        next_state, reward, done, _ = env.step(action)
+        done_bool = float(done) if episode_timesteps < env._max_episode_steps else 0
+
+        # Store data in replay buffer
+        replay_buffer.add(state, action, next_state, reward, done_bool)
+
+        state = next_state
+        episode_reward += reward
+
+        # Train agent after collecting sufficient data
+        if t >= variant['start_timesteps']:
+            policy.train(replay_buffer, variant['batch_size'])
+
+        if done or episode_timesteps > env._max_episode_steps:
+            # +1 to account for 0 indexing. +0 on ep_timesteps since it will increment +1 even if done=True
+            print(
+                f"Total T: {t + 1} Episode Num: {episode_num + 1} Episode T: {episode_timesteps} Reward: {episode_reward:.3f}")
+            # Reset environment
+            state, done = env.reset(), False
+            episode_reward = 0
+            episode_timesteps = 0
+            episode_num += 1
+
+        # Evaluate episode
+        if (t + 1) % variant['eval_freq'] == 0:
+            evaluations.append(eval_policy(policy, variant['env'], variant['seed']))
+            new_time = datetime.now()
+            time_elapsed = (new_time - curr_time).total_seconds()
+            curr_time = new_time
+
+            logger.record_tabular('Timestep', t)
+            logger.record_tabular('Eval returns', evaluations[-1])
+            logger.record_tabular('Time since last eval (s)', time_elapsed)
+            logger.dump_tabular(with_prefix=False, with_timestamp=False)
+            if (t + 1) % 250000 == 0:
+                policy.save(osp.join(logger.get_snapshot_dir(), f'itr{t + 1}'))
+    policy.save(osp.join(logger.get_snapshot_dir(), f'final'))  # might be unnecessary if everything divides out properly
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--policy", default="TD3", type=str, choices=['TD3', 'DDPG', 'OurDDPG', 'SAC', 'PytorchSAC'])
@@ -71,6 +237,10 @@ if __name__ == "__main__":
     parser.add_argument("--policy_freq", type=int, default=2)  # Frequency of delayed policy updates
     parser.add_argument("--load_model", type=str, default="")  # Model load file name, "" doesn't load, "default" uses file_name
     parser.add_argument("--automatic_entropy_tuning", action='store_true')
+    parser.add_argument("--weight_decay", type=float, default=0.0)
+    parser.add_argument("--no_target", action='store_true')
+    parser.add_argument("--mlp_qf", action='store_true')
+    parser.add_argument("--mlp_policy", action='store_true')
 
     # network kwargs
     parser.add_argument("--network_class", default="MLP", choices=['MLP', 'FourierMLP', 'LogUniformFourierMLP', 'Siren', 'D2RL'])
@@ -86,6 +256,8 @@ if __name__ == "__main__":
     # other
     parser.add_argument("--expID", default=9999, type=int)
     parser.add_argument("--test", '-t', action='store_true')
+    parser.add_argument("--ec2", action='store_true')
+    parser.add_argument("--local_docker", action='store_true')
     args = parser.parse_args()
 
     file_name = f"{args.policy}_{args.env}_{args.seed}"
@@ -93,162 +265,32 @@ if __name__ == "__main__":
     print(f"Policy: {args.policy}, Env: {args.env}, Seed: {args.seed}")
     print("---------------------------------------")
 
-    if not os.path.exists("./results"):
-        os.makedirs("./results")
-
-    env = make_env(args.env)
-
-    # Set seeds
-    env.seed(args.seed)
-    torch.manual_seed(args.seed)
-    np.random.seed(args.seed)
-
-    state_dim = env.observation_space.shape[0]
-    action_dim = env.action_space.shape[0]
-    max_action = float(env.action_space.high[0])
-
-    kwargs = {
-        "state_dim": state_dim,
-        "action_dim": action_dim,
-        "max_action": max_action,
-        "discount": args.discount,
-        "tau": args.tau
-    }
-
-    # custom network kwargs
-    kwargs['network_class'] = NETWORK_CLASSES[args.network_class]
-    mlp_network_kwargs = dict(n_hidden=args.n_hidden,
-                              hidden_dim=args.hidden_dim,
-                              first_dim=args.first_dim)
-    fourier_network_kwargs = dict(n_hidden=args.n_hidden,
-                                  hidden_dim=args.hidden_dim,
-                                  fourier_dim=args.fourier_dim,
-                                  sigma=args.sigma,
-                                  concatenate_fourier=args.concatenate_fourier,
-                                  train_B=args.train_B)
-    siren_network_kwargs = dict(n_hidden=args.n_hidden,
-                                hidden_dim=args.hidden_dim,
-                                first_omega_0=args.omega,
-                                hidden_omega_0=args.omega)
-    if args.network_class in {'MLP', 'D2RL'}:
-        kwargs['network_kwargs'] = mlp_network_kwargs
-    elif args.network_class in {'FourierMLP', 'LogUniformFourierMLP'}:
-        kwargs['network_kwargs'] = fourier_network_kwargs
-    elif args.network_class == 'Siren':
-        kwargs['network_kwargs'] = siren_network_kwargs
+    variant = vars(args)
+    exp_dir = f'{args.env}-{args.policy}-{args.network_class}'
+    if args.test:
+        exp_dir += '-test'
+    logger_kwargs = dict(snapshot_mode='last')
+    print(multiprocessing.cpu_count(), 'cpus available')
+    if args.ec2:
+        run_experiment(experiment, mode='ec2', exp_prefix=exp_dir, variant=variant,
+                       seed=variant['seed'], **logger_kwargs, use_gpu=False,
+                       instance_type=None,
+                       spot_price=None,
+                       verbose=False,
+                       region='us-east-2',
+                       # region='us-east-1',
+                       num_exps_per_instance=1)
+    elif args.local_docker:
+        run_experiment(experiment, mode='local_docker', exp_prefix=exp_dir, variant=variant,
+                       seed=variant['seed'], **logger_kwargs, use_gpu=False,
+                       instance_type=None,
+                       spot_price=None,
+                       verbose=False,
+                       region='us-east-2',
+                       num_exps_per_instance=1)
     else:
-        raise NotImplementedError
+        exp_dir += '-' + datetime.now().strftime("%m-%d")
+        setup_logger(exp_dir, variant=variant, seed=variant['seed'], **logger_kwargs)
+        experiment(variant)
 
-    # Initialize policy
-    if args.policy == "TD3":
-        # Target policy smoothing is scaled wrt the action scale
-        kwargs["policy_noise"] = args.policy_noise * max_action
-        kwargs["noise_clip"] = args.noise_clip * max_action
-        kwargs["policy_freq"] = args.policy_freq
-        policy = TD3.TD3(**kwargs)
-    elif args.policy == "OurDDPG":
-        policy = OurDDPG.DDPG(**kwargs)
-    elif args.policy == "DDPG":
-        policy = DDPG.DDPG(**kwargs)
-    elif args.policy == "SAC":
-        kwargs['lr'] = args.lr
-        kwargs['alpha'] = args.alpha
-        kwargs['automatic_entropy_tuning'] = args.automatic_entropy_tuning
-        # left out dmc
-        policy = SAC(**kwargs)
-    elif args.policy == 'PytorchSAC':
-        kwargs['action_range'] = [float(env.action_space.low.min()), float(env.action_space.high.max())]
-        kwargs['actor_lr'] = args.lr
-        kwargs['critic_lr'] = args.lr
-        kwargs['alpha_lr'] = args.alpha_lr
-        del kwargs['max_action']
-        policy = PytorchSAC(**kwargs)
-    else:
-        raise NotImplementedError
 
-    if args.load_model != "":
-        policy_file = file_name if args.load_model == "default" else args.load_model
-        policy.load(f"./models/{policy_file}")
-
-    # change the kwargs for logging and plotting purposes
-    kwargs['network_kwargs'] = {**mlp_network_kwargs, **fourier_network_kwargs, **siren_network_kwargs}
-    kwargs['expID'] = args.expID
-    kwargs['seed'] = args.seed
-    kwargs['first_dim'] = max(args.hidden_dim, args.first_dim)
-    kwargs['env'] = args.env
-
-    # set up logging
-    log_dir = create_env_folder(args.env, args.expID, args.policy, args.network_class, test=args.test)
-    save_kwargs(kwargs, log_dir)
-    tabular_log_path = osp.join(log_dir, 'progress.csv')
-    text_log_path = osp.join(log_dir, 'debug.log')
-
-    logger.add_text_output(text_log_path)
-    logger.add_tabular_output(tabular_log_path)
-    exp_name = f'{args.env}-td3-exp{args.expID}'
-    logger.push_prefix("[%s] " % exp_name)
-    policy.save(osp.join(log_dir, f'itr0'))
-
-    replay_buffer = utils.ReplayBuffer(state_dim, action_dim)
-
-    # Evaluate untrained policy
-    evaluations = [eval_policy(policy, args.env, args.seed)]
-
-    state, done = env.reset(), False
-    episode_reward = 0
-    episode_timesteps = 0
-    episode_num = 0
-    curr_time = datetime.now()
-
-    for t in range(int(args.max_timesteps)):
-        episode_timesteps += 1
-
-        # Select action randomly or according to policy
-        if t < args.start_timesteps:
-            action = env.action_space.sample()
-        elif args.policy in {'TD3', 'DDPG', 'OurDDPG'}:
-            action = (
-                    policy.select_action(np.array(state), evaluate=False)
-                    + np.random.normal(0, max_action * args.expl_noise, size=action_dim)
-            ).clip(-max_action, max_action)
-        elif args.policy in {'SAC', 'PytorchSAC'}:
-            action = policy.select_action(np.array(state), evaluate=False)
-
-        # Perform action
-        next_state, reward, done, _ = env.step(action)
-        done_bool = float(done) if episode_timesteps < env._max_episode_steps else 0
-
-        # Store data in replay buffer
-        replay_buffer.add(state, action, next_state, reward, done_bool)
-
-        state = next_state
-        episode_reward += reward
-
-        # Train agent after collecting sufficient data
-        if t >= args.start_timesteps:
-            policy.train(replay_buffer, args.batch_size)
-
-        if done or episode_timesteps > env._max_episode_steps:
-            # +1 to account for 0 indexing. +0 on ep_timesteps since it will increment +1 even if done=True
-            print(
-                f"Total T: {t + 1} Episode Num: {episode_num + 1} Episode T: {episode_timesteps} Reward: {episode_reward:.3f}")
-            # Reset environment
-            state, done = env.reset(), False
-            episode_reward = 0
-            episode_timesteps = 0
-            episode_num += 1
-
-        # Evaluate episode
-        if (t + 1) % args.eval_freq == 0:
-            evaluations.append(eval_policy(policy, args.env, args.seed))
-            new_time = datetime.now()
-            time_elapsed = (new_time - curr_time).total_seconds()
-            curr_time = new_time
-
-            logger.record_tabular('Timestep', t)
-            logger.record_tabular('Eval returns', evaluations[-1])
-            logger.record_tabular('Time since last eval (s)', time_elapsed)
-            logger.dump_tabular(with_prefix=False, with_timestamp=False)
-            if (t + 1) % 250000 == 0:
-                policy.save(osp.join(log_dir, f'itr{t + 1}'))
-    policy.save(osp.join(log_dir, f'final'))  # might be unnecessary if everything divides out properly

@@ -5,6 +5,7 @@ import abc
 import pytorch_sac.utils as utils
 from pytorch_sac.agent.critic import DoubleQCritic
 from pytorch_sac.agent.actor import DiagGaussianActor
+import models.mlp
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -48,7 +49,11 @@ class SACAgent(Agent):
                  tau=0.005,
                  critic_target_update_frequency=2,
                  batch_size=1024,
-                 learnable_temperature=True):
+                 learnable_temperature=True,
+                 weight_decay=0.0,
+                 no_target=False,
+                 mlp_policy=False,
+                 mlp_qf=False):
         super().__init__()
         print('Pytorch SAC time!')
         self.action_range = action_range
@@ -60,18 +65,30 @@ class SACAgent(Agent):
         self.batch_size = batch_size
         self.learnable_temperature = learnable_temperature
 
-        q1 = network_class(state_dim + action_dim, 1, add_tanh=False, **network_kwargs)
-        q2 = network_class(state_dim + action_dim, 1, add_tanh=False, **network_kwargs)
-        # q1 = utils.mlp(state_dim + action_dim, 1024, 1, 2)
-        # q2 = utils.mlp(state_dim + action_dim, 1024, 1, 2)
-        q1_target = network_class(state_dim + action_dim, 1, add_tanh=False, **network_kwargs)
-        q2_target = network_class(state_dim + action_dim, 1, add_tanh=False, **network_kwargs)
+        # set up networks
+        if mlp_qf:
+            qf_net_cls = models.mlp.MLP
+            qf_net_kwargs = dict(n_hidden=network_kwargs['n_hidden'] + 1,
+                                 hidden_dim=network_kwargs['hidden_dim'])
+        else:
+            qf_net_cls = network_class
+            qf_net_kwargs = network_kwargs
+        q1 = qf_net_cls(state_dim + action_dim, 1, add_tanh=False, **qf_net_kwargs)
+        q2 = qf_net_cls(state_dim + action_dim, 1, add_tanh=False, **qf_net_kwargs)
+        q1_target = qf_net_cls(state_dim + action_dim, 1, add_tanh=False, **qf_net_kwargs)
+        q2_target = qf_net_cls(state_dim + action_dim, 1, add_tanh=False, **qf_net_kwargs)
         self.critic = DoubleQCritic(q1, q2).to(self.device)
         self.critic_target = DoubleQCritic(q1_target, q2_target).to(self.device)
         self.critic_target.load_state_dict(self.critic.state_dict())
 
-        # policy_net = utils.mlp(state_dim, 1024, 2 * action_dim, 2)
-        policy_net = network_class(state_dim, action_dim * 2, add_tanh=False, **network_kwargs)
+        if mlp_policy:
+            policy_net_cls = models.mlp.MLP
+            policy_net_kwargs = dict(n_hidden=network_kwargs['n_hidden'] + 1,
+                                     hidden_dim=network_kwargs['hidden_dim'])
+        else:
+            policy_net_cls = network_class
+            policy_net_kwargs = network_kwargs
+        policy_net = policy_net_cls(state_dim, action_dim * 2, add_tanh=False, **policy_net_kwargs)
         self.actor = DiagGaussianActor(policy_net, log_std_bounds=[-5, 2]).to(self.device)
         self.log_alpha = torch.tensor(np.log(init_temperature)).to(self.device)
         self.log_alpha.requires_grad = True
@@ -81,16 +98,17 @@ class SACAgent(Agent):
         # optimizers
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(),
                                                 lr=actor_lr,
-                                                betas=actor_betas)
+                                                betas=actor_betas,
+                                                weight_decay=weight_decay)
 
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(),
                                                  lr=critic_lr,
-                                                 betas=critic_betas)
-
+                                                 betas=critic_betas,
+                                                 weight_decay=weight_decay)
         self.log_alpha_optimizer = torch.optim.Adam([self.log_alpha],
                                                     lr=alpha_lr,
                                                     betas=alpha_betas)
-
+        self.no_target = no_target
         self.train_mode()
         self.critic_target.train()
         self.step = 0
@@ -120,9 +138,11 @@ class SACAgent(Agent):
         dist = self.actor(next_obs)
         next_action = dist.rsample()
         log_prob = dist.log_prob(next_action).sum(-1, keepdim=True)
-        target_Q1, target_Q2 = self.critic_target(next_obs, next_action)
-        target_V = torch.min(target_Q1,
-                             target_Q2) - self.alpha.detach() * log_prob
+        if self.no_target:
+            target_Q1, target_Q2 = self.critic(next_obs, next_action)
+        else:
+            target_Q1, target_Q2 = self.critic_target(next_obs, next_action)
+        target_V = torch.min(target_Q1, target_Q2) - self.alpha.detach() * log_prob
         target_Q = reward + (not_done * self.discount * target_V)
         target_Q = target_Q.detach()
 
