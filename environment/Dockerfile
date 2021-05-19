@@ -3,7 +3,8 @@
 # on hosts with GPUs.
 # The image below is a pinned version of nvidia/cuda:9.1-cudnn7-devel-ubuntu16.04 (from Jan 2018)
 # If updating the base image, be sure to test on GPU since it has broken in the past.
-FROM nvidia/cuda:9.1-cudnn7-devel-ubuntu16.04
+#FROM nvidia/cuda:9.1-cudnn7-devel-ubuntu16.04
+FROM nvidia/cuda:10.2-runtime-ubuntu16.04
 #FROM nvidia/cuda:11.3.0-cudnn8-devel-ubuntu16.04
 
 RUN apt-get update -q \
