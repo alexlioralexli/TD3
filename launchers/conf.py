@@ -67,8 +67,11 @@ DOODAD_DOCKER_IMAGE = "'vitchyr/railrl_v9_cuda10-1_mj1-50-1-59_torch0-4-1_gym0-1
 INSTANCE_TYPE = 'c4.xlarge'
 SPOT_PRICE = 0.2 # 0.03
 
-GPU_DOODAD_DOCKER_IMAGE = "'vitchyr/railrl_v9_cuda10-1_mj1-50-1-59_torch0-4-1_gym0-10-5_py3-5-2'"  #"'iclavera/meta-mb'" # "'vitchyr/railrl-vitchyr'"
-GPU_INSTANCE_TYPE = 'g2.2xlarge'
+GPU_DOODAD_DOCKER_IMAGE = "'alexli1/td3:v4'"  #"'iclavera/meta-mb'" # "'vitchyr/railrl-vitchyr'"
+# GPU_DOODAD_DOCKER_IMAGE = "'vitchyr/railrl_v9_cuda10-1_mj1-50-1-59_torch0-4-1_gym0-10-5_py3-5-2'"  #"'iclavera/meta-mb'" # "'vitchyr/railrl-vitchyr'"
+GPU_INSTANCE_TYPE = 'g3s.xlarge' # 8 Gb memory
+# GPU_INSTANCE_TYPE = 'p2.xlarge'  # 12 Gb memory
+# GPU_INSTANCE_TYPE = 'g2.2xlarge'
 GPU_SPOT_PRICE = 0.5
 
 # You can use AMI images with the docker images already installed.

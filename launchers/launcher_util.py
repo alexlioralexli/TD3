@@ -174,7 +174,7 @@ def create_exp_name(exp_prefix, exp_id=0, seed=0):
     :return:
     """
     now = datetime.datetime.now(dateutil.tz.tzlocal())
-    timestamp = now.strftime('%Y_%m_%d_%H_%M_%S')
+    timestamp = now.strftime('%Y_%m_%d_%H_%M_%S_%f')
     return "%s_%s_%04d--s-%d" % (exp_prefix, timestamp, exp_id, seed)
 
 
@@ -389,7 +389,7 @@ def query_yes_no(question, default="yes"):
 Below is doodad-specific code
 """
 ec2_okayed = True
-gpu_ec2_okayed = False
+gpu_ec2_okayed = True
 first_sss_launch = True
 
 try:

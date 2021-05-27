@@ -55,6 +55,7 @@ def eval_policy(policy, env_name, seed, eval_episodes=10):
 
 def experiment(variant):
     from rlkit_logging import logger
+    print('CUDA status:', torch.cuda.is_available())
     env = make_env(variant['env'])
 
     # Set seeds
@@ -274,12 +275,11 @@ if __name__ == "__main__":
     print(multiprocessing.cpu_count(), 'cpus available')
     if args.ec2:
         run_experiment(experiment, mode='ec2', exp_prefix=exp_dir, variant=variant,
-                       seed=variant['seed'], **logger_kwargs, use_gpu=False,
+                       seed=variant['seed'], **logger_kwargs, use_gpu=True,
                        instance_type=None,
                        spot_price=None,
                        verbose=False,
-                       region='us-east-2',
-                       # region='us-east-1',
+                       region='us-west-1',
                        num_exps_per_instance=1)
     elif args.local_docker:
         run_experiment(experiment, mode='local_docker', exp_prefix=exp_dir, variant=variant,
@@ -293,5 +293,4 @@ if __name__ == "__main__":
         exp_dir += '-' + datetime.now().strftime("%m-%d")
         setup_logger(exp_dir, variant=variant, seed=variant['seed'], **logger_kwargs)
         experiment(variant)
-
 
