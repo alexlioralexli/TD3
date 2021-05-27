@@ -87,7 +87,7 @@ for i, env in enumerate(envs):
 
     for command in commands:
         count += 1
-        print(f'{command} --max_timesteps {max_timesteps} --ec2')
+        print(f'CUDA_VISIBLE_DEVICES=0 taskset -c a-b {command} --max_timesteps {max_timesteps}')
         if count % 10 == 0:
             print(count)
 print(count)
