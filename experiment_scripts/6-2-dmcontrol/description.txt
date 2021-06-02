@@ -1,0 +1,22 @@
+Running the missing configurations for 7 envs
+7 * 3 = 21
+
+Plus for cheetah trying f_dim = 1024 like everyone else
+5 * 3 = 15
+
+and 2 more seeds for everything
+7 * 5  * 2  = 70
+
+total: 106
+
+
+compute available:
+cthulhu 1: 8 exps
+cthulhu 2: 16 exps
+cthulhu 3: 6 exps
+cthulhu 4: 16 exps
+cthulhu 5: 8 exps
+rl 3: 4 exps
+------------------
+58 total
+

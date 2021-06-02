@@ -15,7 +15,7 @@ envs = [
 
 lff_configs = [
     (1024, 0.01),
-    (64, 0.003),
+    (64, 0.003),    # 64, 0.003
     (1024, 0.01),
     (1024, 0.001),
     (1024, 0.01),
@@ -40,10 +40,10 @@ for i, env in enumerate(envs):
     # LFF
     fourier_dim, sigma = lff_configs[i]
     for sigma_sweep in sigmas:
-        if sigma_sweep != sigma:
-            for seed in [10, 20, 30]:
-                commands.append(base_str + f' --network_class FourierMLP --concatenate_fourier --train_B'
-                                           f' --sigma {sigma_sweep} --fourier_dim {fourier_dim}  --seed {seed}')
+        # if sigma_sweep == sigma:
+        for seed in [40, 50]:
+            commands.append(base_str + f' --network_class FourierMLP --concatenate_fourier --train_B'
+                                       f' --sigma {sigma_sweep} --fourier_dim {fourier_dim}  --seed {seed}')
 
     for command in commands:
         count += 1
