@@ -10,7 +10,7 @@ envs = [
     'dm.quadruped.run',
     'dm.quadruped.walk',
     'dm.hopper.hop',
-    # 'dm.humanoid.run',
+    'dm.humanoid.run',
 ]
 
 lff_configs = [
@@ -25,10 +25,11 @@ lff_configs = [
 ]
 
 times = [
-    1e6, 1e6, 1e6, 1e6, 2e6, 2e6, 1e6
+    1e6, 1e6, 1e6, 1e6, 2e6, 2e6, 1e6, 5e6
 ]
 
-sigmas = [0.001, 0.003, 0.01, 0.03, 0.1]
+sigmas = [0.001, 0.003, 0.03, 0.1]
+# sigmas = [0.001, 0.003, 0.01, 0.03, 0.1]
 
 lr = '1e-4'
 count = 0
@@ -41,7 +42,7 @@ for i, env in enumerate(envs):
     fourier_dim, sigma = lff_configs[i]
     for sigma_sweep in sigmas:
         # if sigma_sweep == sigma:
-        for seed in [40, 50]:
+        for seed in [10, 20, 30]:
             commands.append(base_str + f' --network_class FourierMLP --concatenate_fourier --train_B'
                                        f' --sigma {sigma_sweep} --fourier_dim {fourier_dim}  --seed {seed}')
 

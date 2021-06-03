@@ -25,50 +25,61 @@ CUDA_VISIBLE_DEVICES=5 taskset -c 9-11 python main.py --policy PytorchSAC --env 
 # still going
 # quadruped run (definitely needs 2M)
 # A
-python main.py --policy PytorchSAC --env dm.quadruped.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --first_dim 1065 --weight_decay 0.001 --seed 10 --max_timesteps 2000000 &
-python main.py --policy PytorchSAC --env dm.quadruped.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --first_dim 1065 --weight_decay 0.001 --seed 20 --max_timesteps 2000000 &
 
-# B
-python main.py --policy PytorchSAC --env dm.quadruped.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --first_dim 1065 --weight_decay 0.001 --seed 30 --max_timesteps 2000000 &
-python main.py --policy PytorchSAC --env dm.quadruped.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --first_dim 1065 --weight_decay 0.00001 --seed 10 --max_timesteps 2000000 &
+# B, killed
+python main.py --policy PytorchSAC --env dm.quadruped.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --first_dim 1065 --weight_decay 0.001 --seed 30 --max_timesteps 2000000 --lr 1e-4 &
+python main.py --policy PytorchSAC --env dm.quadruped.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --first_dim 1065 --weight_decay 0.00001 --seed 10 --max_timesteps 2000000 --lr 1e-4 &
+syncawsb /home/ubuntu/workspace/TD3/data/dm.quadruped.run-PytorchSAC-MLP-05-27
+# C, to kill
+python main.py --policy PytorchSAC --env dm.quadruped.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --first_dim 1065 --weight_decay 0.00001 --seed 20 --max_timesteps 2000000 --lr 1e-4 &
+python main.py --policy PytorchSAC --env dm.quadruped.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --first_dim 1065 --weight_decay 0.00001 --seed 30 --max_timesteps 2000000 --lr 1e-4 &
+syncawsc /home/ubuntu/workspace/TD3/data/dm.quadruped.run-PytorchSAC-MLP-05-27
 
-# C
-python main.py --policy PytorchSAC --env dm.quadruped.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --first_dim 1065 --weight_decay 0.00001 --seed 20 --max_timesteps 2000000 &
-python main.py --policy PytorchSAC --env dm.quadruped.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --first_dim 1065 --weight_decay 0.00001 --seed 30 --max_timesteps 2000000 &
-
-# D
+# D -- done, killed
 python main.py --policy PytorchSAC --env dm.quadruped.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr 1e-4 --network_class LogUniformFourierMLP --fourier_dim 1024 --sigma 0.01 --seed 10 --max_timesteps 2000000 &
 python main.py --policy PytorchSAC --env dm.quadruped.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr 1e-4 --network_class LogUniformFourierMLP --fourier_dim 1024 --sigma 0.01 --seed 20 --max_timesteps 2000000 &
 
 # quadruped walk (2M)
-# E
-python main.py --policy PytorchSAC --env dm.quadruped.walk --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --first_dim 1065 --weight_decay 0.001 --seed 30 --max_timesteps 2000000 &
-python main.py --policy PytorchSAC --env dm.quadruped.walk --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --first_dim 1065 --weight_decay 0.001 --seed 40 --max_timesteps 2000000 &
+# E, killed
+python main.py --policy PytorchSAC --env dm.quadruped.walk --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --first_dim 1065 --weight_decay 0.001 --seed 30 --max_timesteps 2000000 --lr 1e-4 &
+python main.py --policy PytorchSAC --env dm.quadruped.walk --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --first_dim 1065 --weight_decay 0.001 --seed 40 --max_timesteps 2000000 --lr 1e-4 &
+syncawse  /home/ubuntu/workspace/TD3/data/dm.quadruped.walk-PytorchSAC-MLP-05-27
 
-# F
-python main.py --policy PytorchSAC --env dm.quadruped.walk --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --first_dim 1065 --weight_decay 0.00001 --seed 10 --max_timesteps 2000000 &
-python main.py --policy PytorchSAC --env dm.quadruped.walk --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --first_dim 1065 --weight_decay 0.00001 --seed 20 --max_timesteps 2000000 &
+# F, to kill
+python main.py --policy PytorchSAC --env dm.quadruped.walk --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --first_dim 1065 --weight_decay 0.00001 --seed 10 --max_timesteps 2000000 --lr 1e-4 &
+python main.py --policy PytorchSAC --env dm.quadruped.walk --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --first_dim 1065 --weight_decay 0.00001 --seed 20 --max_timesteps 2000000 --lr 1e-4 &
+syncawsf /home/ubuntu/workspace/TD3/data/dm.quadruped.walk-PytorchSAC-MLP-05-27
 
-# G
-python main.py --policy PytorchSAC --env dm.quadruped.walk --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --first_dim 1065 --weight_decay 0.00001 --seed 30 --max_timesteps 2000000 &
+# G, killed
+python main.py --policy PytorchSAC --env dm.quadruped.walk --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 3 --first_dim 1065 --weight_decay 0.00001 --seed 30 --max_timesteps 2000000 --lr 1e-4 &
 python main.py --policy PytorchSAC --env dm.quadruped.walk --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr 1e-4 --network_class LogUniformFourierMLP --fourier_dim 1024 --sigma 0.01 --seed 30 --max_timesteps 2000000 &
+syncawsg /home/ubuntu/workspace/TD3/data/dm.quadruped.walk-PytorchSAC-LogUniformFourierMLP-05-26
+syncawsg /home/ubuntu/workspace/TD3/data/dm.quadruped.walk-PytorchSAC-MLP-05-27
 
 # humanoid ablations (5M)
 # H -- problem
 python main.py --policy PytorchSAC --env dm.humanoid.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr 1e-4 --network_class FourierMLP --concatenate_fourier --train_B --sigma 0.01 --fourier_dim 1024 --mlp_qf --seed 10 --max_timesteps 5000000 &
 python main.py --policy PytorchSAC --env dm.humanoid.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr 1e-4 --network_class FourierMLP --concatenate_fourier --train_B --sigma 0.01 --fourier_dim 1024 --mlp_policy --seed 10 --max_timesteps 5000000 &
+syncawsh /home/ubuntu/workspace/TD3/data/dm.humanoid.run-PytorchSAC-FourierMLP-05-27
 
 # I -- problem
 python main.py --policy PytorchSAC --env dm.humanoid.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr 1e-4 --network_class FourierMLP --concatenate_fourier --train_B --sigma 0.01 --fourier_dim 1024 --mlp_qf --seed 20 --max_timesteps 5000000 &
 python main.py --policy PytorchSAC --env dm.humanoid.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr 1e-4 --network_class FourierMLP --concatenate_fourier --train_B --sigma 0.01 --fourier_dim 1024 --mlp_policy --seed 20 --max_timesteps 5000000 &
+syncawsi /home/ubuntu/workspace/TD3/data/dm.humanoid.run-PytorchSAC-FourierMLP-05-27
 
 # J -- problem
 python main.py --policy PytorchSAC --env dm.humanoid.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr 1e-4 --network_class FourierMLP --train_B --sigma 0.01 --fourier_dim 1024 --seed 10 --max_timesteps 5000000 &
 python main.py --policy PytorchSAC --env dm.humanoid.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr 1e-4 --network_class FourierMLP --concatenate_fourier --sigma 0.01 --fourier_dim 1024 --seed 10 --max_timesteps 5000000 &
+syncawsj /home/ubuntu/workspace/TD3/data/dm.humanoid.run-PytorchSAC-FourierMLP-05-27
 
 # K -- problem
 python main.py --policy PytorchSAC --env dm.humanoid.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr 1e-4 --network_class FourierMLP --train_B --sigma 0.01 --fourier_dim 1024 --seed 20 --max_timesteps 5000000 &
 python main.py --policy PytorchSAC --env dm.humanoid.run --start_timesteps 5000 --hidden_dim 1024 --batch_size 1024 --n_hidden 2 --lr 1e-4 --network_class FourierMLP --concatenate_fourier --sigma 0.01 --fourier_dim 1024 --seed 20 --max_timesteps 5000000 &
+syncawsk /home/ubuntu/workspace/TD3/data/dm.humanoid.run-PytorchSAC-FourierMLP-05-27
+
+# awsrad 1, to kill
+syncawsrad1 /home/ubuntu/workspace/rad/logs/dm.finger.turn_hard-SAC-05-26-2021
+
 
 
 # acrobot

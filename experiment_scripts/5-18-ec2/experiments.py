@@ -80,10 +80,10 @@ for i, env in enumerate(envs):
                         f" --batch_size 1024 --n_hidden 3 --first_dim {first_dims[i]} --weight_decay {wd} --seed {10}")
 
     # LogUniform
-    fourier_dim = lff_configs[i][0]
-    for high in log_uniform_ranges:
-        for seed in [10, 20]:
-            commands.append(base_str + f' --network_class LogUniformFourierMLP --fourier_dim {fourier_dim} --sigma {high} --seed {seed}')
+    # fourier_dim = lff_configs[i][0]
+    # for high in log_uniform_ranges:
+    #     for seed in [10, 20]:
+    #         commands.append(base_str + f' --network_class LogUniformFourierMLP --fourier_dim {fourier_dim} --sigma {high} --seed {seed}')
 
     for command in commands:
         count += 1
