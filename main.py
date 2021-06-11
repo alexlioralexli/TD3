@@ -8,7 +8,7 @@ import TD3
 import OurDDPG
 import DDPG
 from sac import SAC
-from models.mlp import MLP, FourierMLP, LogUniformFourierMLP, Siren, D2RL
+from models.mlp import MLP, FourierMLP, LogUniformFourierMLP, Siren, D2RL, VariableInitMLP
 from logging_utils import save_kwargs, create_env_folder
 import os.path as osp
 
@@ -21,6 +21,7 @@ from pytorch_sac.agent.sac import SACAgent as PytorchSAC
 
 NETWORK_CLASSES = dict(
     MLP=MLP,
+    VariableInitMLP=VariableInitMLP,
     FourierMLP=FourierMLP,
     LogUniformFourierMLP=LogUniformFourierMLP,
     Siren=Siren,
@@ -43,7 +44,6 @@ def eval_policy(policy, env_name, seed, eval_episodes=10):
             state, reward, done, _ = eval_env.step(action)
             avg_reward += reward
             t += 1
-
 
     avg_reward /= eval_episodes
 
@@ -68,19 +68,18 @@ def experiment(variant):
     action_dim = env.action_space.shape[0]
     max_action = float(env.action_space.high[0])
 
-    kwargs = {
-        "state_dim": state_dim,
-        "action_dim": action_dim,
-        "max_action": max_action,
-        "discount": variant['discount'],
-        "tau": variant['tau']
-    }
+    kwargs = {"state_dim": state_dim, "action_dim": action_dim, "max_action": max_action,
+              "discount": variant['discount'], "tau": variant['tau'],
+              'network_class': NETWORK_CLASSES[variant['network_class']]}
 
     # custom network kwargs
-    kwargs['network_class'] = NETWORK_CLASSES[variant['network_class']]
     mlp_network_kwargs = dict(n_hidden=variant['n_hidden'],
                               hidden_dim=variant['hidden_dim'],
                               first_dim=variant['first_dim'])
+    variable_init_mlp_network_kwargs = dict(n_hidden=variant['n_hidden'],
+                                            hidden_dim=variant['hidden_dim'],
+                                            first_dim=variant['first_dim'],
+                                            sigma=variant['sigma'])
     fourier_network_kwargs = dict(n_hidden=variant['n_hidden'],
                                   hidden_dim=variant['hidden_dim'],
                                   fourier_dim=variant['fourier_dim'],
@@ -93,6 +92,8 @@ def experiment(variant):
                                 hidden_omega_0=variant['omega'])
     if variant['network_class'] in {'MLP', 'D2RL'}:
         kwargs['network_kwargs'] = mlp_network_kwargs
+    elif variant['network_class'] == 'VariableInitMLP':
+        kwargs['network_kwargs'] = variable_init_mlp_network_kwargs
     elif variant['network_class'] in {'FourierMLP', 'LogUniformFourierMLP'}:
         kwargs['network_kwargs'] = fourier_network_kwargs
     elif variant['network_class'] == 'Siren':
@@ -217,7 +218,8 @@ def experiment(variant):
             logger.dump_tabular(with_prefix=False, with_timestamp=False)
             if (t + 1) % 250000 == 0:
                 policy.save(osp.join(logger.get_snapshot_dir(), f'itr{t + 1}'))
-    policy.save(osp.join(logger.get_snapshot_dir(), f'final'))  # might be unnecessary if everything divides out properly
+    policy.save(osp.join(logger.get_snapshot_dir(), f'final'))  # might be unnecessary if everything divides properly
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -237,7 +239,8 @@ if __name__ == "__main__":
     parser.add_argument("--policy_noise", type=float, default=0.2)  # Noise added to target policy during critic update
     parser.add_argument("--noise_clip", type=float, default=0.5)  # Range to clip target policy noise
     parser.add_argument("--policy_freq", type=int, default=2)  # Frequency of delayed policy updates
-    parser.add_argument("--load_model", type=str, default="")  # Model load file name, "" doesn't load, "default" uses file_name
+    parser.add_argument("--load_model", type=str,
+                        default="")  # Model load file name, "" doesn't load, "default" uses file_name
     parser.add_argument("--automatic_entropy_tuning", action='store_true')
     parser.add_argument("--weight_decay", type=float, default=0.0)
     parser.add_argument("--no_target", action='store_true')
@@ -245,7 +248,8 @@ if __name__ == "__main__":
     parser.add_argument("--mlp_policy", action='store_true')
 
     # network kwargs
-    parser.add_argument("--network_class", default="MLP", choices=['MLP', 'FourierMLP', 'LogUniformFourierMLP', 'Siren', 'D2RL'])
+    parser.add_argument("--network_class", default="MLP",
+                        choices=['MLP', 'FourierMLP', 'LogUniformFourierMLP', 'Siren', 'D2RL', 'VariableInitMLP'])
     parser.add_argument("--n_hidden", default=1, type=int)
     parser.add_argument("--hidden_dim", default=256, type=int)
     parser.add_argument("--first_dim", default=0, type=int)
@@ -293,4 +297,3 @@ if __name__ == "__main__":
         exp_dir += '-' + datetime.now().strftime("%m-%d")
         setup_logger(exp_dir, variant=variant, seed=variant['seed'], **logger_kwargs)
         experiment(variant)
-

@@ -33,3 +33,4 @@ def create_env_folder(env_name, expID, algo, network_class, test=False):
 def save_kwargs(kwargs_dict, dir):
     with open(os.path.join(dir, "variant.json"), "w") as f:
         json.dump(kwargs_dict, f, indent=2, sort_keys=True, cls=MyEncoder)
+

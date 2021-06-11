@@ -30,6 +30,36 @@ class MLP(nn.Module):
         return self.mlp.forward(x)
 
 
+class VariableInitMLP(nn.Module):
+
+    def __init__(self, input_size, output_size, n_hidden=1, hidden_dim=256, first_dim=0, add_tanh=False, sigma=1.0):
+        super().__init__()
+
+        first_dim = max(hidden_dim, first_dim)
+        self.first_layer = nn.Linear(input_size, first_dim)
+        self.first_layer.weight.data = torch.normal(torch.zeros(first_dim, input_size),
+                                                    sigma * torch.ones(first_dim, input_size))
+        layers = [nn.ReLU()]
+        for _ in range(n_hidden - 1):
+            layers.append(nn.Linear(first_dim, hidden_dim))
+            first_dim = hidden_dim
+            layers.append(nn.ReLU())
+        layers.append(nn.Linear(first_dim, output_size))
+        if add_tanh:
+            layers.append(nn.Tanh())
+
+        self.mlp = nn.Sequential(*layers)
+
+    def forward(self, x):
+        """
+        :param x: tensor of shape [batch_size, input_size]
+        :return: logits: tensor of shape [batch_size, n_classes]
+        """
+        x = x.view(len(x), -1)  # flatten
+        x = self.first_layer(x)
+        return self.mlp.forward(x)
+
+
 class FourierMLP(nn.Module):
     def __init__(self,
                  input_size,
@@ -79,6 +109,7 @@ class FourierMLP(nn.Module):
         else:
             ff = torch.cat([torch.sin(proj), torch.cos(proj)], dim=-1)
         return self.mlp.forward(ff)
+
 
 class LogUniformFourierMLP(nn.Module):
     def __init__(self,

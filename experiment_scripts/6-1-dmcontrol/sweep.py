@@ -1,7 +1,3 @@
-"""
-"""
-import math
-
 envs = [
     'dm.acrobot.swingup',
     'dm.cheetah.run',
