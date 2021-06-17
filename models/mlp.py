@@ -36,9 +36,10 @@ class VariableInitMLP(nn.Module):
         super().__init__()
 
         first_dim = max(hidden_dim, first_dim)
-        self.first_layer = nn.Linear(input_size, first_dim)
-        self.first_layer.weight.data = torch.normal(torch.zeros(first_dim, input_size),
-                                                    sigma * torch.ones(first_dim, input_size))
+        # manual linear layer hack to avoid the orthogonal weight reinit
+        self.first_weight = nn.Parameter(torch.normal(torch.zeros(first_dim, input_size),
+                                                      sigma * torch.ones(first_dim, input_size)))
+        self.first_bias = nn.Parameter(torch.zeros(first_dim))
         layers = [nn.ReLU()]
         for _ in range(n_hidden - 1):
             layers.append(nn.Linear(first_dim, hidden_dim))
@@ -56,7 +57,7 @@ class VariableInitMLP(nn.Module):
         :return: logits: tensor of shape [batch_size, n_classes]
         """
         x = x.view(len(x), -1)  # flatten
-        x = self.first_layer(x)
+        x = F.linear(x, self.first_weight, self.first_bias)
         return self.mlp.forward(x)
 
 
